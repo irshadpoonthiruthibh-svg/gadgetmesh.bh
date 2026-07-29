@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GadgetMesh.bh — Admin</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C1C1E; --ink-soft:#6B6B70; --paper:#F7F5F5; --panel:#FFFFFF;
+    --line:#EAE3E3; --blush:#FFADAD; --blush-deep:#FF8B8B; --blush-ink:#8A3B3B;
+    --sidebar:#1C1C1E; --sidebar-soft:#9c9a9c;
+    --good:#1E7A44; --good-bg:#DCEEE2; --warn:#8A5A00; --warn-bg:#FCEBD5; --bad:#B23B2E; --bad-bg:#FBE2DE;
+    --radius:14px; --shadow:0 10px 30px rgba(28,28,30,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Sora',sans-serif;letter-spacing:-0.01em;margin:0;}
+  img{max-width:100%;display:block;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#ddd6d6;border-radius:8px;}
+
+  /* ---------- login ---------- */
+  #loginScreen{position:fixed;inset:0;background:linear-gradient(150deg,#1C1C1E,#3a2626);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+  .login-card{background:#fff;border-radius:20px;padding:40px 34px;width:100%;max-width:380px;box-shadow:0 30px 70px rgba(0,0,0,0.35);}
+  .login-card .lg{display:flex;align-items:center;gap:10px;margin-bottom:26px;}
+  .login-card .lg .dot{width:34px;height:34px;border-radius:10px;background:var(--ink);display:flex;align-items:center;justify-content:center;color:var(--blush);font-family:'Sora';font-weight:800;font-size:15px;}
+  .login-card .lg .t{font-family:'Sora';font-weight:800;font-size:17px;}
+  .login-card .lg .t small{display:block;font-weight:500;font-size:11px;color:var(--ink-soft);}
+  .login-card h2{font-size:20px;margin-bottom:6px;}
+  .login-card p.sub{color:var(--ink-soft);font-size:13px;margin:0 0 22px;}
+  .login-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;margin-bottom:14px;}
+  .login-card input:focus{outline:none;border-color:var(--blush-deep);}
+  .login-card button{width:100%;background:var(--ink);color:#fff;border:none;padding:13px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;}
+  .login-card .msg{color:var(--bad);font-size:12.5px;margin-top:12px;min-height:16px;}
+
+  /* ---------- shell ---------- */
+  #shell{display:none;min-height:100vh;}
+  #shell.show{display:flex;}
+  .sidebar{
+    width:230px;flex-shrink:0;background:var(--sidebar);color:#fff;padding:22px 16px;
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  }
+  .sb-logo{display:flex;align-items:center;gap:10px;padding:0 6px 22px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:18px;}
+  .sb-logo .dot{width:30px;height:30px;border-radius:9px;background:var(--blush);display:flex;align-items:center;justify-content:center;color:var(--ink);font-family:'Sora';font-weight:800;font-size:13px;flex-shrink:0;}
+  .sb-logo .t{font-family:'Sora';font-weight:800;font-size:14.5px;line-height:1.2;}
+  .sb-logo .t small{display:block;font-weight:500;font-size:10px;color:var(--sidebar-soft);}
+  .sb-nav{display:flex;flex-direction:column;gap:3px;}
+  .sb-link{
+    display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;color:var(--sidebar-soft);
+    font-weight:600;font-size:13.5px;cursor:pointer;transition:background .15s ease,color .15s ease;
+  }
+  .sb-link .ic{width:18px;text-align:center;font-size:15px;}
+  .sb-link:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .sb-link.active{background:var(--blush);color:var(--ink);}
+  .sb-spacer{flex:1;}
+  .sb-foot{padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);}
+  .sb-foot .logout{display:flex;align-items:center;gap:9px;color:var(--sidebar-soft);font-size:13px;font-weight:600;cursor:pointer;padding:10px 12px;border-radius:10px;}
+  .sb-foot .logout:hover{background:rgba(255,255,255,0.06);color:#fff;}
+
+  .main{flex:1;min-width:0;padding:28px 32px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+  .topbar h1{font-size:24px;}
+  .topbar p{color:var(--ink-soft);font-size:13.5px;margin-top:4px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
+  .stat-card{background:var(--panel);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .stat-card .lbl{font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;}
+  .stat-card .val{font-family:'Sora';font-weight:800;font-size:26px;margin-top:8px;}
+  .stat-card .delta{font-size:12px;margin-top:6px;color:var(--good);font-weight:600;}
+
+  .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+  .card{background:var(--panel);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:18px;}
+  .card h2{font-size:16px;margin-bottom:14px;}
+  .card h2 .muted{font-weight:500;color:var(--ink-soft);font-size:12.5px;}
+
+  .mini-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .mini-row:last-child{border-bottom:none;}
+  .mini-row .thumb{width:34px;height:34px;border-radius:8px;object-fit:cover;background:var(--paper);margin-right:10px;}
+  .mini-row .who{display:flex;align-items:center;flex:1;min-width:0;}
+  .mini-row .name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .field{flex:1;min-width:150px;margin-bottom:14px;}
+  .field.full{flex-basis:100%;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .field label .opt{font-weight:500;color:var(--ink-soft);}
+  .field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:13.5px;background:#fff;}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--blush-deep);}
+  .field textarea{resize:vertical;min-height:70px;}
+
+  .img-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:6px;}
+  .img-slot{position:relative;}
+  .img-slot .prev{width:100%;aspect-ratio:1/1;border-radius:10px;background:var(--paper);border:1.5px dashed var(--line);object-fit:cover;display:block;}
+  .img-slot .num{position:absolute;top:5px;left:5px;background:rgba(28,28,30,0.7);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;}
+  .img-slot input{margin-top:6px;font-size:11.5px;padding:6px 8px;}
+  .img-slot.main .num{background:var(--blush-deep);}
+
+  .toggle-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .toggle-pill{
+    display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:30px;padding:9px 15px;
+    cursor:pointer;font-size:13px;font-weight:700;color:var(--ink-soft);user-select:none;
+  }
+  .toggle-pill input{margin:0;}
+  .toggle-pill.on{border-color:var(--blush-deep);background:#FFF3F3;color:var(--blush-ink);}
+  .toggle-pill .ic{font-size:14px;}
+
+  button.primary{background:var(--ink);color:#fff;border:none;padding:12px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13.5px;}
+  button.primary:hover{background:#000;}
+  button.ghost{background:none;border:1.5px solid var(--line);padding:10px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);}
+  button.ghost:hover{border-color:var(--ink);}
+  button.danger{color:var(--bad);}
+  button.small{padding:7px 12px;font-size:12px;border-radius:8px;}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .toolbar input[type=text]{flex:1;min-width:180px;padding:10px 13px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;}
+  .toolbar select{padding:10px 13px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;background:#fff;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:10px 10px;background:var(--paper);font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);font-weight:700;}
+  td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .p-thumb{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--paper);}
+  .p-name-cell{display:flex;align-items:center;gap:10px;}
+  .p-name-cell .nm{font-weight:700;}
+  .p-name-cell .cat{font-size:11.5px;color:var(--ink-soft);}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;margin-right:4px;}
+  .badge.featured{background:#FFF0D9;color:#8A5A00;}
+  .badge.bestseller{background:#FDE7E7;color:var(--blush-ink);}
+  .badge.active-yes{background:var(--good-bg);color:var(--good);}
+  .badge.active-no{background:#eee;color:#888;}
+  .badge.sale{background:#FDE0DE;color:var(--bad);}
+  .discount-banner{display:inline-flex;align-items:center;gap:8px;background:var(--good-bg);color:var(--good);font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:9px;}
+  .discount-banner.warn{background:var(--bad-bg);color:var(--bad);}
+  .price-cell .was{display:block;color:var(--ink-soft);text-decoration:line-through;font-size:11.5px;font-weight:600;}
+  .pill{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;}
+  .pill.pending{background:var(--warn-bg);color:var(--warn);}
+  .pill.paid{background:var(--good-bg);color:var(--good);}
+  .pill.new{background:#E4ECEC;color:var(--ink);}
+  .pill.confirmed{background:var(--good-bg);color:var(--good);}
+  .pill.shipped{background:#DDE7F5;color:#2A4E9C;}
+  .pill.delivered{background:var(--good);color:white;}
+  select.status{font-size:11.5px;padding:5px 7px;border-radius:7px;border:1.5px solid var(--line);font-family:inherit;}
+  .stock-low{color:var(--bad);font-weight:700;}
+  .muted{color:var(--ink-soft);font-size:12.5px;}
+  .empty-row td{text-align:center;color:var(--ink-soft);padding:34px;}
+
+  .order-details{background:var(--paper);border-radius:10px;padding:14px;margin-top:8px;font-size:12.5px;display:none;}
+  .order-details.show{display:block;}
+  .order-details .oi{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);}
+
+  @media (max-width:980px){
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .grid2{grid-template-columns:1fr;}
+    .img-grid{grid-template-columns:repeat(3,1fr);}
+    table{font-size:12px;}
+  }
+  @media (max-width:760px){
+    #shell.show{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;padding:14px;}
+    .sb-logo{display:none;}
+    .sb-nav{flex-direction:row;}
+    .sb-spacer{display:none;}
+    .sb-foot{display:none;}
+    .main{padding:20px 16px 50px;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .img-grid{grid-template-columns:repeat(5,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="lg"><div class="dot">GM</div><div class="t">GadgetMesh.bh<small>Admin console</small></div></div>
+    <h2>Welcome back</h2>
+    <p class="sub">Sign in with your admin password to manage products and orders.</p>
+    <input type="password" id="pwInput" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()">
+    <button class="primary" onclick="login()">Log in</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="shell">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="dot">GM</div><div class="t">GadgetMesh.bh<small>Admin console</small></div></div>
+    <div class="sb-nav">
+      <div class="sb-link active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ic">📊</span> Dashboard</div>
+      <div class="sb-link" data-tab="products" onclick="switchTab('products')"><span class="ic">🛍️</span> Products</div>
+      <div class="sb-link" data-tab="homepage" onclick="switchTab('homepage')"><span class="ic">🏠</span> Homepage</div>
+      <div class="sb-link" data-tab="orders" onclick="switchTab('orders')"><span class="ic">📦</span> Orders</div>
+      <div class="sb-link" data-tab="customers" onclick="switchTab('customers')"><span class="ic">👤</span> Customers</div>
+    </div>
+    <div class="sb-spacer"></div>
+    <div class="sb-foot"><div class="logout" onclick="logout()"><span class="ic">↩</span> Log out</div></div>
+  </div>
+
+  <div class="main">
+
+    <!-- ================= DASHBOARD ================= -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="topbar">
+        <div><h1>Dashboard</h1><p>A quick snapshot of your store right now.</p></div>
+        <button class="ghost" onclick="loadAll()">↻ Refresh</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="lbl">Total revenue</div><div class="val" id="statRevenue">0.000 BHD</div><div class="delta" id="statRevenueSub">from paid orders</div></div>
+        <div class="stat-card"><div class="lbl">Orders</div><div class="val" id="statOrders">0</div><div class="delta" id="statOrdersSub">total placed</div></div>
+        <div class="stat-card"><div class="lbl">Pending payment</div><div class="val" id="statPending">0</div><div class="delta" id="statPendingSub" style="color:var(--warn);">awaiting confirmation</div></div>
+        <div class="stat-card"><div class="lbl">Live products</div><div class="val" id="statProducts">0</div><div class="delta" id="statProductsSub">active in catalogue</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Recent orders</h2>
+          <div id="recentOrders"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="card">
+          <h2>Low stock <span class="muted">(≤ 3 units)</span></h2>
+          <div id="lowStock"><p class="muted">Loading…</p></div>
+          <h2 style="margin-top:20px;">Featured right now</h2>
+          <div id="featuredPreview"><p class="muted">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PRODUCTS ================= -->
+    <div class="panel" id="panel-products">
+      <div class="topbar">
+        <div><h1>Products</h1><p>Add gadgets, upload up to 5 images each, and mark them Featured or Best Seller.</p></div>
+      </div>
+
+      <div class="card">
+        <h2 id="formTitle">Add a product</h2>
+        <div class="row">
+          <div class="field"><label>Name</label><input id="pName" placeholder="Wireless Earbuds Pro"></div>
+          <div class="field"></div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Price (BHD) <span class="opt">— what the customer pays now</span></label>
+            <input id="pPrice" type="number" step="0.001" placeholder="18.500" oninput="updateDiscountPreview()">
+          </div>
+          <div class="field">
+            <label>Compare-at price <span class="opt">— optional, the crossed-out "was" price</span></label>
+            <input id="pCompareAt" type="number" step="0.001" placeholder="e.g. 24.900" oninput="updateDiscountPreview()">
+          </div>
+        </div>
+        <div id="discountPreview" style="display:none;margin:-6px 0 16px;"></div>
+        <div class="row">
+          <div class="field"><label>Category</label><input id="pCategory" placeholder="e.g. Audio, Charging"></div>
+          <div class="field"><label>Stock</label><input id="pStock" type="number" value="10"></div>
+        </div>
+        <div class="field full"><label>Description</label><textarea id="pDesc" placeholder="Short, honest description customers will see on the product page."></textarea></div>
+
+        <div class="field full">
+          <label>Product images <span class="opt">— paste up to 5 image URLs · image 1 is the main photo</span></label>
+          <div class="img-grid" id="imgGrid"></div>
+        </div>
+
+        <div class="toggle-row">
+          <label class="toggle-pill" id="pActivePill"><input type="checkbox" id="pActive" checked onchange="syncPill('pActive','pActivePill')"><span class="ic">✅</span> Active (visible in store)</label>
+          <label class="toggle-pill" id="pFeaturedPill"><input type="checkbox" id="pFeatured" onchange="syncPill('pFeatured','pFeaturedPill')"><span class="ic">⭐</span> Featured product</label>
+          <label class="toggle-pill" id="pBestsellerPill"><input type="checkbox" id="pBestseller" onchange="syncPill('pBestseller','pBestsellerPill')"><span class="ic">🔥</span> Best seller</label>
+        </div>
+
+        <input type="hidden" id="pId">
+        <button class="primary" onclick="saveProduct()">Save product</button>
+        <button class="ghost" id="cancelEditBtn" onclick="resetForm()" style="display:none;">Cancel edit</button>
+        <span class="muted" id="productSaveMsg" style="margin-left:12px;"></span>
+      </div>
+
+      <div class="card">
+        <h2>Catalogue <span class="muted" id="catalogueCount"></span></h2>
+        <div class="toolbar">
+          <input type="text" id="prodSearch" placeholder="Search products…" oninput="renderProductRows()">
+          <select id="prodCatFilter" onchange="renderProductRows()"><option value="">All categories</option></select>
+          <select id="prodFlagFilter" onchange="renderProductRows()">
+            <option value="">All products</option>
+            <option value="featured">Featured only</option>
+            <option value="bestseller">Best sellers only</option>
+            <option value="low">Low stock</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Flags</th><th></th></tr></thead>
+          <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= HOMEPAGE ================= -->
+    <div class="panel" id="panel-homepage">
+      <div class="topbar">
+        <div><h1>Homepage</h1><p>Control the "Featured Gadget" banner customers see first when they land on your store.</p></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Hero banner</h2>
+          <div class="toggle-row">
+            <label class="toggle-pill" id="heroActivePill"><input type="checkbox" id="heroActive" onchange="syncPill('heroActive','heroActivePill')"><span class="ic">✅</span> Show this banner on the homepage</label>
+          </div>
+          <div class="field full">
+            <label>Banner image <span class="opt">— paste an image URL, this is the main photo customers see first</span></label>
+            <img class="prev" id="heroImgPrev" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;border:1.5px dashed var(--line);margin-bottom:8px;" src="https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20" onerror="this.src='https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20'">
+            <input type="text" id="heroImage" placeholder="https://…" oninput="document.getElementById('heroImgPrev').src=this.value||'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20'">
+          </div>
+          <div class="row">
+            <div class="field"><label>Small label above headline</label><input id="heroEyebrow" placeholder="New drops every week · Delivered across Bahrain"></div>
+          </div>
+          <div class="row">
+            <div class="field full"><label>Headline</label><input id="heroTitle" placeholder="Tech gear that just works, delivered fast."></div>
+          </div>
+          <div class="field full"><label>Subtitle</label><textarea id="heroSubtitle" placeholder="Earbuds, chargers, smart accessories and everyday gadgets — curated for Bahrain, priced in BHD."></textarea></div>
+          <div class="row">
+            <div class="field"><label>Button text</label><input id="heroCtaText" placeholder="Shop the collection"></div>
+            <div class="field"><label>Link to a product <span class="opt">(optional)</span></label>
+              <select id="heroProductId"><option value="">— none, just a photo —</option></select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Floating tag 1</label><input id="heroBadge1" placeholder="In stock in Manama"></div>
+            <div class="field"><label>Floating tag 2</label><input id="heroBadge2" placeholder="🚚 Same-week delivery"></div>
+          </div>
+          <button class="primary" onclick="saveHeroSettings()">Save homepage banner</button>
+          <span class="muted" id="heroSaveMsg" style="margin-left:12px;"></span>
+        </div>
+        <div class="card">
+          <h2>Live preview</h2>
+          <p class="muted" style="margin-bottom:12px;">Roughly how the banner will look on the storefront.</p>
+          <div style="border:1.5px solid var(--line);border-radius:14px;padding:16px;background:var(--paper);">
+            <div style="font-size:11px;font-weight:700;color:var(--blush-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" id="heroPreviewEyebrow">New drops every week</div>
+            <div style="font-family:'Sora';font-weight:800;font-size:18px;margin-bottom:8px;" id="heroPreviewTitle">Tech gear that just works.</div>
+            <img id="heroPreviewImg" src="https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:16/10;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ORDERS ================= -->
+    <div class="panel" id="panel-orders">
+      <div class="topbar">
+        <div><h1>Orders</h1><p>Confirm BenefitPay orders once you've received the WhatsApp payment screenshot.</p></div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" id="orderSearch" placeholder="Search by name, phone, or order ID…" oninput="renderOrderRows()">
+          <select id="orderStatusFilter" onchange="renderOrderRows()">
+            <option value="">All statuses</option>
+            <option value="new">New</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Order status</th><th>Payment status</th><th></th></tr></thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= CUSTOMERS ================= -->
+    <div class="panel" id="panel-customers">
+      <div class="topbar">
+        <div><h1>Customers</h1><p>Everyone who has registered an account to check out.</p></div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" id="custSearch" placeholder="Search by name, email, or phone…" oninput="renderCustomerRows()">
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Registered</th></tr></thead>
+          <tbody id="customerRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CONFIG = { API_URL: 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' };
+let ADMIN_PASSWORD = '';
+let PRODUCTS = [];
+let ORDERS = [];
+
+/* ---------------- auth ---------------- */
+function login(){
+  ADMIN_PASSWORD = document.getElementById('pwInput').value;
+  document.getElementById('loginMsg').textContent = 'Checking…';
+  fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listAllProducts', password: ADMIN_PASSWORD }) })
+    .then(r => r.json())
+    .then(data => {
+      if(data.ok){
+        sessionStorage.setItem('gm_admin_pw', ADMIN_PASSWORD);
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('shell').classList.add('show');
+        loadAll();
+      } else {
+        document.getElementById('loginMsg').textContent = data.error || 'Incorrect password.';
+      }
+    })
+    .catch(() => document.getElementById('loginMsg').textContent = 'Could not reach backend. Check API_URL in admin.html.');
+}
+function logout(){ sessionStorage.removeItem('gm_admin_pw'); location.reload(); }
+
+function switchTab(tab){
+  document.querySelectorAll('.sb-link').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-'+tab));
+}
+
+async function loadAll(){
+  await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings()]);
+  renderDashboard();
+}
+
+/* ---------------- image slot builder ---------------- */
+function buildImgGrid(){
+  const grid = document.getElementById('imgGrid');
+  grid.innerHTML = [1,2,3,4,5].map(n => `
+    <div class="img-slot ${n===1?'main':''}">
+      <span class="num">${n===1?'Main':'#'+n}</span>
+      <img class="prev" id="imgPrev${n}" src="https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20" onerror="this.src='https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20'">
+      <input type="text" id="pImg${n}" placeholder="Image URL ${n}" oninput="document.getElementById('imgPrev${n}').src=this.value||'https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20'">
+    </div>
+  `).join('');
+}
+buildImgGrid();
+
+function syncPill(inputId, pillId){
+  document.getElementById(pillId).classList.toggle('on', document.getElementById(inputId).checked);
+}
+
+/* ---------------- products ---------------- */
+async function loadProducts(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listAllProducts', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  PRODUCTS = data.products || [];
+  buildCatFilter();
+  renderProductRows();
+  buildHeroProductOptions();
+}
+function buildHeroProductOptions(){
+  const sel = document.getElementById('heroProductId');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— none, just a photo —</option>' + PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  sel.value = current;
+}
+function buildCatFilter(){
+  const cats = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
+  const sel = document.getElementById('prodCatFilter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = current;
+}
+function isYes(v){ return v===true||v==='TRUE'||v===1||v==='1'; }
+
+function discountPct(p){
+  const compareAt = Number(p.compareAtPrice || 0);
+  const price = Number(p.price || 0);
+  if(!compareAt || compareAt <= price) return 0;
+  return Math.round((1 - price/compareAt) * 100);
+}
+
+function updateDiscountPreview(){
+  const price = Number(document.getElementById('pPrice').value || 0);
+  const compareAt = Number(document.getElementById('pCompareAt').value || 0);
+  const box = document.getElementById('discountPreview');
+  if(!compareAt){ box.style.display='none'; return; }
+  box.style.display='block';
+  if(compareAt <= price){
+    box.innerHTML = `<span class="discount-banner warn">⚠ Compare-at price should be higher than the price for a discount to show</span>`;
+  } else {
+    const pct = Math.round((1 - price/compareAt) * 100);
+    box.innerHTML = `<span class="discount-banner">🏷️ Customers will see ${pct}% off — ${compareAt.toFixed(3)} <s>BHD</s> → ${price.toFixed(3)} BHD</span>`;
+  }
+}
+
+function renderProductRows(){
+  const q = (document.getElementById('prodSearch').value || '').toLowerCase();
+  const cat = document.getElementById('prodCatFilter').value;
+  const flag = document.getElementById('prodFlagFilter').value;
+  let list = PRODUCTS.filter(p => (p.name||'').toLowerCase().includes(q));
+  if(cat) list = list.filter(p => p.category === cat);
+  if(flag === 'featured') list = list.filter(p => isYes(p.featured));
+  if(flag === 'bestseller') list = list.filter(p => isYes(p.bestseller));
+  if(flag === 'low') list = list.filter(p => Number(p.stock) <= 3);
+  if(flag === 'inactive') list = list.filter(p => !isYes(p.active));
+
+  document.getElementById('catalogueCount').textContent = `— ${list.length} of ${PRODUCTS.length} products`;
+
+  document.getElementById('productRows').innerHTML = list.length ? list.map(p => {
+    const img = (p.images && p.images[0]) || 'https://placehold.co/100x100/FDF7F7/8A3B3B?text=GM';
+    const pct = discountPct(p);
+    const flags = [
+      isYes(p.featured) ? '<span class="badge featured">⭐ Featured</span>' : '',
+      isYes(p.bestseller) ? '<span class="badge bestseller">🔥 Best seller</span>' : '',
+      pct > 0 ? `<span class="badge sale">🏷️ ${pct}% off</span>` : '',
+      `<span class="badge ${isYes(p.active)?'active-yes':'active-no'}">${isYes(p.active)?'Active':'Hidden'}</span>`
+    ].join('');
+    return `
+    <tr>
+      <td><div class="p-name-cell"><img class="p-thumb" src="${img}"><div><div class="nm">${p.name}</div><div class="cat">${p.category||'—'}</div></div></div></td>
+      <td class="price-cell">${pct>0?`<span class="was">${Number(p.compareAtPrice).toFixed(3)} BHD</span>`:''}${Number(p.price).toFixed(3)} BHD</td>
+      <td class="${Number(p.stock)<=3?'stock-low':''}">${p.stock}</td>
+      <td>${flags}</td>
+      <td style="white-space:nowrap;">
+        <button class="ghost small" onclick='editProduct("${p.id}")'>Edit</button>
+        <button class="ghost small danger" onclick="deleteProduct('${p.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('') : `<tr class="empty-row"><td colspan="5">No products match your filters yet.</td></tr>`;
+}
+
+function editProduct(id){
+  const p = PRODUCTS.find(p => p.id === id);
+  if(!p) return;
+  document.getElementById('formTitle').textContent = 'Edit product';
+  document.getElementById('pId').value = p.id;
+  document.getElementById('pName').value = p.name;
+  document.getElementById('pPrice').value = p.price;
+  document.getElementById('pCompareAt').value = p.compareAtPrice || '';
+  document.getElementById('pCategory').value = p.category||'';
+  document.getElementById('pStock').value = p.stock;
+  document.getElementById('pDesc').value = p.description||'';
+  const imgs = p.images || [];
+  for(let i=0;i<5;i++){
+    const v = imgs[i] || '';
+    document.getElementById('pImg'+(i+1)).value = v;
+    document.getElementById('imgPrev'+(i+1)).src = v || 'https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20';
+  }
+  document.getElementById('pActive').checked = isYes(p.active);
+  document.getElementById('pFeatured').checked = isYes(p.featured);
+  document.getElementById('pBestseller').checked = isYes(p.bestseller);
+  ['pActive','pFeatured','pBestseller'].forEach(id => syncPill(id, id+'Pill'));
+  updateDiscountPreview();
+  document.getElementById('cancelEditBtn').style.display='inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetForm(){
+  document.getElementById('formTitle').textContent = 'Add a product';
+  ['pId','pName','pPrice','pCompareAt','pCategory','pStock','pDesc'].forEach(id => document.getElementById(id).value='');
+  for(let i=1;i<=5;i++){ document.getElementById('pImg'+i).value=''; document.getElementById('imgPrev'+i).src='https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20'; }
+  document.getElementById('pActive').checked = true;
+  document.getElementById('pFeatured').checked = false;
+  document.getElementById('pBestseller').checked = false;
+  ['pActive','pFeatured','pBestseller'].forEach(id => syncPill(id, id+'Pill'));
+  document.getElementById('discountPreview').style.display='none';
+  document.getElementById('cancelEditBtn').style.display='none';
+}
+async function saveProduct(){
+  const name = document.getElementById('pName').value.trim();
+  const price = Number(document.getElementById('pPrice').value);
+  if(!name || !price){ alert('Please enter at least a name and price.'); return; }
+  const compareAtRaw = document.getElementById('pCompareAt').value;
+  const compareAtPrice = compareAtRaw ? Number(compareAtRaw) : '';
+  const id = document.getElementById('pId').value;
+  const images = [1,2,3,4,5].map(n => document.getElementById('pImg'+n).value.trim());
+  const wasEdit = !!id;
+  const payload = {
+    action: id ? 'updateProduct' : 'addProduct',
+    password: ADMIN_PASSWORD,
+    id: id || undefined,
+    name, price, compareAtPrice,
+    category: document.getElementById('pCategory').value.trim(),
+    stock: Number(document.getElementById('pStock').value || 0),
+    description: document.getElementById('pDesc').value.trim(),
+    images,
+    active: document.getElementById('pActive').checked,
+    featured: document.getElementById('pFeatured').checked,
+    bestseller: document.getElementById('pBestseller').checked
+  };
+  const msg = document.getElementById('productSaveMsg');
+  msg.textContent = 'Saving…';
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(payload) });
+  const data = await res.json();
+  if(data.ok){
+    msg.textContent = wasEdit ? '✓ Updated — live on the site now.' : '✓ Added — live on the site now.';
+  } else {
+    msg.textContent = '⚠ ' + (data.error || 'Could not save. Check your API_URL and admin password.');
+  }
+  resetForm();
+  await loadProducts();
+  renderDashboard();
+  setTimeout(() => { msg.textContent = ''; }, 4000);
+}
+async function deleteProduct(id){
+  if(!confirm('Delete this product? This cannot be undone.')) return;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteProduct', password: ADMIN_PASSWORD, id }) });
+  await loadProducts();
+  renderDashboard();
+}
+
+/* ---------------- orders ---------------- */
+async function loadOrders(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listOrdersAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  ORDERS = (data.orders || []).slice().reverse();
+  renderOrderRows();
+}
+function parseItems(o){ try{ return JSON.parse(o.items); }catch(e){ return []; } }
+
+function renderOrderRows(){
+  const q = (document.getElementById('orderSearch').value || '').toLowerCase();
+  const status = document.getElementById('orderStatusFilter').value;
+  let list = ORDERS.filter(o =>
+    (o.customerName||'').toLowerCase().includes(q) ||
+    (o.phone||'').toLowerCase().includes(q) ||
+    (o.id||'').toLowerCase().includes(q)
+  );
+  if(status) list = list.filter(o => o.orderStatus === status);
+
+  document.getElementById('orderRows').innerHTML = list.length ? list.map((o,idx) => {
+    const items = parseItems(o);
+    const itemsText = items.map(i => `${i.name} ×${i.qty}`).join(', ');
+    return `
+      <tr>
+        <td>
+          <a href="javascript:void(0)" onclick="toggleDetails('od${idx}')" style="font-weight:700;">${o.id}</a>
+          <div class="muted">${new Date(o.timestamp).toLocaleString()}</div>
+          <div class="order-details" id="od${idx}">
+            <div class="oi"><span>Phone</span><span>${o.phone||'—'}</span></div>
+            <div class="oi"><span>Address</span><span style="text-align:right;max-width:220px;">${o.address||'—'}</span></div>
+            <div class="oi"><span>Items</span><span style="text-align:right;max-width:220px;">${itemsText||'—'}</span></div>
+            <div class="oi"><span>Notes</span><span>${o.notes||'—'}</span></div>
+          </div>
+        </td>
+        <td>${o.customerName||'—'}</td>
+        <td>${Number(o.total).toFixed(3)} BHD</td>
+        <td>${o.paymentMethod||'—'}</td>
+        <td>
+          <select class="status" onchange="updateOrder('${o.id}','orderStatus',this.value)">
+            ${['new','confirmed','shipped','delivered'].map(s => `<option value="${s}" ${o.orderStatus===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <select class="status" onchange="updateOrder('${o.id}','paymentStatus',this.value)">
+            ${['pending','paid'].map(s => `<option value="${s}" ${o.paymentStatus===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td><button class="ghost small" onclick="toggleDetails('od${idx}')">Details</button></td>
+      </tr>
+    `;
+  }).join('') : `<tr class="empty-row"><td colspan="7">No orders match yet.</td></tr>`;
+}
+function toggleDetails(id){ document.getElementById(id).classList.toggle('show'); }
+async function updateOrder(id, field, value){
+  const payload = { action:'updateOrderStatus', password: ADMIN_PASSWORD, id };
+  payload[field] = value;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(payload) });
+  const o = ORDERS.find(o => o.id === id);
+  if(o) o[field] = value;
+  renderDashboard();
+}
+
+/* ---------------- dashboard ---------------- */
+function renderDashboard(){
+  const revenue = ORDERS.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.total||0), 0);
+  const pending = ORDERS.filter(o => o.paymentStatus !== 'paid').length;
+  document.getElementById('statRevenue').textContent = revenue.toFixed(3) + ' BHD';
+  document.getElementById('statOrders').textContent = ORDERS.length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statProducts').textContent = PRODUCTS.filter(p => isYes(p.active)).length;
+
+  const recent = ORDERS.slice(0,5);
+  document.getElementById('recentOrders').innerHTML = recent.length ? recent.map(o => `
+    <div class="mini-row">
+      <div class="who"><div><div class="name">${o.customerName||'—'}</div><div class="muted">${o.id}</div></div></div>
+      <div style="text-align:right;">
+        <div>${Number(o.total).toFixed(3)} BHD</div>
+        <span class="pill ${o.orderStatus||'new'}">${o.orderStatus||'new'}</span>
+      </div>
+    </div>
+  `).join('') : `<p class="muted">No orders yet.</p>`;
+
+  const low = PRODUCTS.filter(p => Number(p.stock) <= 3 && isYes(p.active)).slice(0,5);
+  document.getElementById('lowStock').innerHTML = low.length ? low.map(p => `
+    <div class="mini-row">
+      <div class="who"><img class="thumb" src="${(p.images&&p.images[0])||'https://placehold.co/100x100/FDF7F7/8A3B3B?text=GM'}"><div class="name">${p.name}</div></div>
+      <div class="stock-low">${p.stock} left</div>
+    </div>
+  `).join('') : `<p class="muted">Stock levels look healthy.</p>`;
+
+  const featured = PRODUCTS.filter(p => isYes(p.featured));
+  document.getElementById('featuredPreview').innerHTML = featured.length ? featured.slice(0,5).map(p => `
+    <div class="mini-row">
+      <div class="who"><img class="thumb" src="${(p.images&&p.images[0])||'https://placehold.co/100x100/FDF7F7/8A3B3B?text=GM'}"><div class="name">${p.name}</div></div>
+      <div>${Number(p.price).toFixed(3)} BHD</div>
+    </div>
+  `).join('') : `<p class="muted">No featured products yet — star one in the Products tab.</p>`;
+}
+
+/* ---------------- homepage hero banner ---------------- */
+async function loadHeroSettings(){
+  try{
+    const r = await fetch(`${CONFIG.API_URL}?action=getSettings`);
+    const data = await r.json();
+    const s = data.settings || {};
+    document.getElementById('heroActive').checked = s.heroActive === true || s.heroActive === 'TRUE';
+    syncPill('heroActive','heroActivePill');
+    document.getElementById('heroImage').value = s.heroImage || '';
+    document.getElementById('heroImgPrev').src = s.heroImage || 'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20';
+    document.getElementById('heroEyebrow').value = s.heroEyebrow || '';
+    document.getElementById('heroTitle').value = s.heroTitle || '';
+    document.getElementById('heroSubtitle').value = s.heroSubtitle || '';
+    document.getElementById('heroCtaText').value = s.heroCtaText || '';
+    document.getElementById('heroBadge1').value = s.heroBadge1 || '';
+    document.getElementById('heroBadge2').value = s.heroBadge2 || '';
+    document.getElementById('heroProductId').value = s.heroProductId || '';
+    updateHeroPreview();
+  }catch(err){ /* settings sheet may not exist yet — defaults are fine */ }
+}
+function updateHeroPreview(){
+  document.getElementById('heroPreviewEyebrow').textContent = document.getElementById('heroEyebrow').value || 'New drops every week';
+  document.getElementById('heroPreviewTitle').textContent = document.getElementById('heroTitle').value || 'Tech gear that just works.';
+  document.getElementById('heroPreviewImg').src = document.getElementById('heroImage').value || 'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20';
+}
+['heroEyebrow','heroTitle','heroImage'].forEach(id => {
+  document.addEventListener('input', (e) => { if(e.target && e.target.id === id) updateHeroPreview(); });
+});
+async function saveHeroSettings(){
+  const settings = {
+    heroActive: document.getElementById('heroActive').checked,
+    heroImage: document.getElementById('heroImage').value.trim(),
+    heroEyebrow: document.getElementById('heroEyebrow').value.trim(),
+    heroTitle: document.getElementById('heroTitle').value.trim(),
+    heroSubtitle: document.getElementById('heroSubtitle').value.trim(),
+    heroCtaText: document.getElementById('heroCtaText').value.trim(),
+    heroBadge1: document.getElementById('heroBadge1').value.trim(),
+    heroBadge2: document.getElementById('heroBadge2').value.trim(),
+    heroProductId: document.getElementById('heroProductId').value
+  };
+  const msg = document.getElementById('heroSaveMsg');
+  msg.textContent = 'Saving…';
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateSettings', password: ADMIN_PASSWORD, settings }) });
+  msg.textContent = '✓ Saved — live on the homepage now.';
+  setTimeout(() => msg.textContent = '', 3000);
+}
+
+/* ---------------- customers ---------------- */
+let CUSTOMERS = [];
+async function loadCustomers(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listCustomersAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  CUSTOMERS = (data.customers || []).slice().reverse();
+  renderCustomerRows();
+}
+function renderCustomerRows(){
+  const q = (document.getElementById('custSearch').value || '').toLowerCase();
+  const list = CUSTOMERS.filter(c =>
+    (c.name||'').toLowerCase().includes(q) ||
+    (c.email||'').toLowerCase().includes(q) ||
+    (c.phone||'').toLowerCase().includes(q)
+  );
+  document.getElementById('customerRows').innerHTML = list.length ? list.map(c => `
+    <tr>
+      <td style="font-weight:700;">${c.name||'—'}</td>
+      <td>${c.email||'—'}</td>
+      <td>${c.phone||'—'}</td>
+      <td class="muted">${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</td>
+    </tr>
+  `).join('') : `<tr class="empty-row"><td colspan="4">No customers have registered yet.</td></tr>`;
+}
+
+/* Auto-login if password already stored this session */
+const savedPw = sessionStorage.getItem('gm_admin_pw');
+if(savedPw){ document.getElementById('pwInput').value = savedPw; login(); }
+</script>
+</body>
+</html>
