@@ -196,6 +196,7 @@
       <div class="sb-link" data-tab="homepage" onclick="switchTab('homepage')"><span class="ic">🏠</span> Homepage</div>
       <div class="sb-link" data-tab="orders" onclick="switchTab('orders')"><span class="ic">📦</span> Orders</div>
       <div class="sb-link" data-tab="customers" onclick="switchTab('customers')"><span class="ic">👤</span> Customers</div>
+      <div class="sb-link" data-tab="marketing" onclick="switchTab('marketing')"><span class="ic">📣</span> Marketing</div>
     </div>
     <div class="sb-spacer"></div>
     <div class="sb-foot"><div class="logout" onclick="logout()"><span class="ic">↩</span> Log out</div></div>
@@ -363,7 +364,7 @@
           </select>
         </div>
         <table>
-          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Order status</th><th>Payment status</th><th></th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Order status</th><th>Payment status</th><th>Tracking</th><th></th></tr></thead>
           <tbody id="orderRows"></tbody>
         </table>
       </div>
@@ -381,6 +382,59 @@
         <table>
           <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Registered</th></tr></thead>
           <tbody id="customerRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= MARKETING ================= -->
+    <div class="panel" id="panel-marketing">
+      <div class="topbar">
+        <div><h1>Marketing</h1><p>Send announcement or promo emails to everyone who subscribed on the storefront.</p></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Compose campaign</h2>
+          <div class="field full"><label>Subject line</label><input id="campSubject" placeholder="This week only: 20% off chargers ⚡"></div>
+          <div class="field full"><label>Headline</label><input id="campHeadline" placeholder="New drop: 65W chargers are back in stock"></div>
+          <div class="field full"><label>Message</label><textarea id="campMessage" rows="5" placeholder="Write the email body — plain text is fine, line breaks are kept."></textarea></div>
+          <div class="field full"><label>Banner image URL <span class="opt">(optional)</span></label><input id="campImage" placeholder="https://…"></div>
+          <div class="row">
+            <div class="field"><label>Button text</label><input id="campCtaText" value="Shop now"></div>
+            <div class="field"><label>Button link</label><input id="campCtaUrl" placeholder="https://gadgetmeshbh.online"></div>
+          </div>
+          <div class="field full">
+            <label>Theme color</label>
+            <div class="toggle-row" id="themeSwatches"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Send a test to</label><input id="campTestEmail" placeholder="you@email.com"></div>
+            <div class="field" style="display:flex;align-items:flex-end;"><button class="ghost" onclick="sendCampaign(true)" style="width:100%;">Send test</button></div>
+          </div>
+          <button class="primary" onclick="sendCampaign(false)">Send to all subscribers</button>
+          <span class="muted" id="campSaveMsg" style="margin-left:12px;"></span>
+        </div>
+
+        <div class="card">
+          <h2>Live preview</h2>
+          <p class="muted" style="margin-bottom:12px;">Roughly how the email will look in the customer's inbox.</p>
+          <div id="campPreview" style="border:1.5px solid var(--line);border-radius:14px;overflow:hidden;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Subscribers <span class="muted" id="subCount"></span></h2>
+        <table>
+          <thead><tr><th>Email</th><th>Subscribed</th><th>Status</th></tr></thead>
+          <tbody id="subscriberRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Campaign history</h2>
+        <table>
+          <thead><tr><th>Subject</th><th>Sent</th><th>Recipients</th></tr></thead>
+          <tbody id="campaignRows"></tbody>
         </table>
       </div>
     </div>
@@ -420,7 +474,7 @@ function switchTab(tab){
 }
 
 async function loadAll(){
-  await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings()]);
+  await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings(), loadSubscribers(), loadCampaigns()]);
   renderDashboard();
 }
 
@@ -649,10 +703,23 @@ function renderOrderRows(){
             ${['pending','paid'].map(s => `<option value="${s}" ${o.paymentStatus===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </td>
+        <td style="min-width:170px;">
+          <input type="text" id="trackNum_${o.id}" placeholder="Tracking #" value="${o.trackingNumber||''}" style="width:100%;margin-bottom:4px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+          <input type="text" id="trackUrl_${o.id}" placeholder="Tracking link" value="${o.trackingUrl||''}" style="width:100%;margin-bottom:5px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+          <button class="ghost small" onclick="saveTracking('${o.id}')">Save</button>
+        </td>
         <td><button class="ghost small" onclick="toggleDetails('od${idx}')">Details</button></td>
       </tr>
     `;
-  }).join('') : `<tr class="empty-row"><td colspan="7">No orders match yet.</td></tr>`;
+  }).join('') : `<tr class="empty-row"><td colspan="8">No orders match yet.</td></tr>`;
+}
+async function saveTracking(id){
+  const trackingNumber = document.getElementById('trackNum_'+id).value.trim();
+  const trackingUrl = document.getElementById('trackUrl_'+id).value.trim();
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateOrderStatus', password: ADMIN_PASSWORD, id, trackingNumber, trackingUrl }) });
+  const o = ORDERS.find(o => o.id === id);
+  if(o){ o.trackingNumber = trackingNumber; o.trackingUrl = trackingUrl; }
+  alert('Tracking saved. If this order is already marked "shipped", the customer just got an email with these tracking details.');
 }
 function toggleDetails(id){ document.getElementById(id).classList.toggle('show'); }
 async function updateOrder(id, field, value){
@@ -771,6 +838,95 @@ function renderCustomerRows(){
       <td class="muted">${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</td>
     </tr>
   `).join('') : `<tr class="empty-row"><td colspan="4">No customers have registered yet.</td></tr>`;
+}
+
+/* ---------------- marketing ---------------- */
+const CAMPAIGN_THEMES = [
+  { id:'blush', color:'#FFADAD', label:'Blush' },
+  { id:'mint', color:'#B9F0D4', label:'Mint' },
+  { id:'sky', color:'#BFDDFF', label:'Sky' },
+  { id:'gold', color:'#FFE1A8', label:'Gold' },
+  { id:'lavender', color:'#DCC9F5', label:'Lavender' }
+];
+let selectedTheme = 'blush';
+function buildThemeSwatches(){
+  document.getElementById('themeSwatches').innerHTML = CAMPAIGN_THEMES.map(t => `
+    <label class="toggle-pill ${t.id===selectedTheme?'on':''}" onclick="selectTheme('${t.id}')" style="cursor:pointer;">
+      <span class="ic" style="width:14px;height:14px;border-radius:50%;background:${t.color};display:inline-block;border:1px solid rgba(0,0,0,0.08);"></span> ${t.label}
+    </label>
+  `).join('');
+}
+function selectTheme(id){ selectedTheme = id; buildThemeSwatches(); updateCampPreview(); }
+buildThemeSwatches();
+
+function updateCampPreview(){
+  const theme = CAMPAIGN_THEMES.find(t => t.id === selectedTheme) || CAMPAIGN_THEMES[0];
+  const headline = document.getElementById('campHeadline').value || 'Your headline here';
+  const message = (document.getElementById('campMessage').value || 'Your message here…').replace(/\n/g,'<br>');
+  const image = document.getElementById('campImage').value;
+  const ctaText = document.getElementById('campCtaText').value || 'Shop now';
+  document.getElementById('campPreview').innerHTML = `
+    <div style="background:${theme.color};padding:22px;text-align:center;">
+      <div style="width:38px;height:38px;border-radius:9px;background:#1C1C1E;color:${theme.color};display:flex;align-items:center;justify-content:center;font-family:'Sora';font-weight:800;font-size:13px;margin:0 auto 8px;">GM</div>
+      <div style="font-family:'Sora';font-weight:800;font-size:16px;color:#1C1C1E;">GadgetMesh.bh</div>
+    </div>
+    <div style="padding:22px;background:#fff;">
+      ${image ? `<img src="${image}" style="width:100%;border-radius:10px;margin-bottom:14px;" onerror="this.style.display='none'">` : ''}
+      <div style="font-family:'Sora';font-weight:800;font-size:17px;margin-bottom:8px;">${headline}</div>
+      <div style="font-size:13px;color:#4d4d4f;line-height:1.6;">${message}</div>
+      <div style="text-align:center;margin-top:18px;"><span style="background:#1C1C1E;color:#fff;padding:11px 20px;border-radius:9px;font-size:12.5px;font-weight:700;display:inline-block;">${ctaText}</span></div>
+    </div>
+  `;
+}
+['campHeadline','campMessage','campImage','campCtaText'].forEach(id => {
+  document.addEventListener('input', (e) => { if(e.target && e.target.id === id) updateCampPreview(); });
+});
+updateCampPreview();
+
+async function sendCampaign(testOnly){
+  const subject = document.getElementById('campSubject').value.trim();
+  const headline = document.getElementById('campHeadline').value.trim();
+  const message = document.getElementById('campMessage').value.trim();
+  const imageUrl = document.getElementById('campImage').value.trim();
+  const ctaText = document.getElementById('campCtaText').value.trim();
+  const ctaUrl = document.getElementById('campCtaUrl').value.trim();
+  const testEmail = document.getElementById('campTestEmail').value.trim();
+  if(!subject || !headline){ alert('Please add a subject and headline first.'); return; }
+  if(testOnly && !testEmail){ alert('Enter an email to send the test to.'); return; }
+  if(!testOnly && !confirm(`Send this to every subscriber (${SUBSCRIBERS.length})? This can't be undone.`)) return;
+
+  const msg = document.getElementById('campSaveMsg');
+  msg.textContent = 'Sending…';
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({
+    action:'sendMarketingCampaign', password: ADMIN_PASSWORD,
+    subject, headline, message, imageUrl, ctaText, ctaUrl,
+    theme: selectedTheme, testOnly, testEmail
+  })});
+  const data = await res.json();
+  msg.textContent = data.ok ? `✓ Sent to ${data.sent} recipient${data.sent!==1?'s':''}.` : '⚠ ' + (data.error||'Could not send.');
+  if(data.ok && !testOnly) loadCampaigns();
+  setTimeout(() => { msg.textContent = ''; }, 6000);
+}
+
+let SUBSCRIBERS = [];
+async function loadSubscribers(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listSubscribersAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  SUBSCRIBERS = (data.subscribers || []).slice().reverse();
+  document.getElementById('subCount').textContent = `— ${SUBSCRIBERS.length} total`;
+  document.getElementById('subscriberRows').innerHTML = SUBSCRIBERS.length ? SUBSCRIBERS.map(s => `
+    <tr><td>${s.email}</td><td class="muted">${s.subscribedAt ? new Date(s.subscribedAt).toLocaleDateString() : '—'}</td><td>${s.status||'subscribed'}</td></tr>
+  `).join('') : `<tr class="empty-row"><td colspan="3">No subscribers yet.</td></tr>`;
+}
+
+let CAMPAIGNS = [];
+async function loadCampaigns(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listCampaignsAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  CAMPAIGNS = (data.campaigns || []).slice().reverse();
+  document.getElementById('campaignRows').innerHTML = CAMPAIGNS.length ? CAMPAIGNS.map(c => `
+    <tr><td>${c.subject}</td><td class="muted">${c.sentAt ? new Date(c.sentAt).toLocaleString() : '—'}</td><td>${c.recipients||0}</td></tr>
+  `).join('') : `<tr class="empty-row"><td colspan="3">No campaigns sent yet.</td></tr>`;
 }
 
 /* Auto-login if password already stored this session */
