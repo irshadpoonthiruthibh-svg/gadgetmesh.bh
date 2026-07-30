@@ -20,15 +20,37 @@ jobs:
 
       - name: Fetch latest products
         run: |
-          curl -sSL "https://script.google.com/macros/s/AKfycbw0Ybqx_ciLojRPERMqzvDpK2uGukA9TDm0pxxi3tMG6Eb-uhx_trhQAY6jokmyimKH/exec?action=listProducts" -o products.json
+          HTTP_CODE=$(curl -sSL -A "Mozilla/5.0 (compatible; GadgetMeshSync/1.0)" \
+            -w "%{http_code}" \
+            "https://script.google.com/macros/s/AKfycbwvs23LIQ8fEbQNUGpuvDjyYkGPzrKGP0ip5UaVOlyRZh5qR5F_ImvzXTp6NVOYddk/exec?action=listProducts" \
+            -o products.json)
+          echo "HTTP status: $HTTP_CODE"
+          echo "--- products.json size ---"
+          wc -c products.json
           echo "--- products.json preview ---"
-          head -c 300 products.json
+          cat products.json | head -c 500
+          echo ""
+          if [ ! -s products.json ]; then
+            echo "::error::products.json came back empty (HTTP $HTTP_CODE) — check the Apps Script deployment access settings"
+            exit 1
+          fi
 
       - name: Fetch latest hero/settings
         run: |
-          curl -sSL "https://script.google.com/macros/s/AKfycbw0Ybqx_ciLojRPERMqzvDpK2uGukA9TDm0pxxi3tMG6Eb-uhx_trhQAY6jokmyimKH/exec?action=getSettings" -o settings.json
+          HTTP_CODE=$(curl -sSL -A "Mozilla/5.0 (compatible; GadgetMeshSync/1.0)" \
+            -w "%{http_code}" \
+            "https://script.google.com/macros/s/AKfycbwvs23LIQ8fEbQNUGpuvDjyYkGPzrKGP0ip5UaVOlyRZh5qR5F_ImvzXTp6NVOYddk/exec?action=getSettings" \
+            -o settings.json)
+          echo "HTTP status: $HTTP_CODE"
+          echo "--- settings.json size ---"
+          wc -c settings.json
           echo "--- settings.json preview ---"
-          head -c 300 settings.json
+          cat settings.json | head -c 500
+          echo ""
+          if [ ! -s settings.json ]; then
+            echo "::error::settings.json came back empty (HTTP $HTTP_CODE) — check the Apps Script deployment access settings"
+            exit 1
+          fi
 
       - name: Validate JSON before committing
         run: |
