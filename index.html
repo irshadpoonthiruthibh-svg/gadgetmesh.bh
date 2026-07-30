@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GadgetMesh.bh  Complete solution for Gadgets </title>
+<title>GadgetMesh.bh — Tech essentials for Bahrain</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -442,7 +442,7 @@
       </svg>
     </div>
     <div class="intro-word">GADGETMESH</div>
-    <div class="intro-sub"> Complete solution for Gadgets </div>
+    <div class="intro-sub">Tech essentials for Bahrain</div>
   </div>
 </div>
 <header id="siteHeader">
@@ -501,8 +501,8 @@
   </div>
   <div class="hero-grid">
     <div class="reveal">
-      <div class="eyebrow" id="heroEyebrow"><span class="dot"></span> New drops every week · Delivered across Bahrain</div>
-      <h1 id="heroTitle">Gadgets for <span> your </span> happiness </h1>
+      <div class="eyebrow" id="heroEyebrow"><span class="dot"></span> ORDER ONLINE, GET IT DELIVERED EASILY</div>
+      <h1 id="heroTitle">Gadgets Made <span>Simple</span></h1>
       <p id="heroSubtitle"> Most awaited gadgets and accessories at best price here.</p>
       <div class="hero-ctas">
         <button class="btn-primary" id="heroCtaBtn" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Shop the collection</button>
@@ -512,9 +512,9 @@
     <div class="hero-visual reveal">
       <div class="hero-blob"></div>
       <div class="hero-card" id="heroCard">
-        <img id="heroImage" src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=800&q=80" alt="Featured gadget">
-        <div class="float-tag t1" id="heroBadge1"><span class="pip"></span> In stock in Manama</div>
-        <div class="float-tag t2" id="heroBadge2">🚚 Same-week delivery</div>
+        <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1785398279/A7D4E178-2642-43BB-89DF-ACAEFECA51C7_qdlkec.png" alt="Featured gadget">
+        <div class="float-tag t1" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
+        <div class="float-tag t2" id="heroBadge2">🚚 one day delivery</div>
       </div>
     </div>
   </div>
@@ -618,7 +618,7 @@
         </div>
         <span class="word" style="color:#fff;">GADGETMESH</span>
       </div>
-      <p style="font-size:13px;color:#b8b3b3;line-height:1.6;max-width:260px;">Complete solution for Gadgets, priced in BHD. Cash on delivery, BenefitPay, and card options at checkout.</p>
+      <p style="font-size:13px;color:#b8b3b3;line-height:1.6;max-width:260px;">Tech essentials for Bahrain, priced in BHD. Cash on delivery, BenefitPay, and card options at checkout.</p>
     </div>
     <div><h4>Shop</h4><a href="#shop">All products</a><a href="#categories">Categories</a><a href="#reviews">Reviews</a><a href="about-us.html">About us</a></div>
     <div><h4>Support</h4><a id="waFooterLink" href="#" target="_blank">WhatsApp us</a><a href="delivery-policy.html">Delivery policy</a><a href="return-refund-policy.html">Returns &amp; refunds</a></div>
@@ -750,7 +750,7 @@
 
 <script>
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbwvs23LIQ8fEbQNUGpuvDjyYkGPzrKGP0ip5UaVOlyRZh5qR5F_ImvzXTp6NVOYddk/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbw0Ybqx_ciLojRPERMqzvDpK2uGukA9TDm0pxxi3tMG6Eb-uhx_trhQAY6jokmyimKH/exec',
   WHATSAPP_NUMBER: '97335184023'
 };
 
@@ -947,12 +947,25 @@ function priceHtml(p, size){
 
 async function loadProducts(){
   try{
-    const res = await fetch(`${CONFIG.API_URL}?action=listProducts`);
+    // Fast path: same-origin static file kept fresh by the GitHub Action.
+    // No cold-start wait, loads instantly for every visitor.
+    const res = await fetch(`products.json?v=${Date.now()}`);
+    if(!res.ok) throw new Error('no static file yet');
     const data = await res.json();
     PRODUCTS = (data.products || []);
-    if(!PRODUCTS.length) PRODUCTS = SAMPLE_PRODUCTS;
+    if(!PRODUCTS.length) throw new Error('empty static file');
   }catch(err){
-    PRODUCTS = SAMPLE_PRODUCTS;
+    // Fallback only if products.json is missing/empty (e.g. before the
+    // Action has ever run) — go straight to the live backend instead of
+    // showing unrelated sample data.
+    try{
+      const res2 = await fetch(`${CONFIG.API_URL}?action=listProducts`);
+      const data2 = await res2.json();
+      PRODUCTS = (data2.products || []);
+      if(!PRODUCTS.length) PRODUCTS = SAMPLE_PRODUCTS;
+    }catch(err2){
+      PRODUCTS = SAMPLE_PRODUCTS;
+    }
   }
   PRODUCTS = PRODUCTS.map(normalizeProduct);
   buildCategoryChips();
@@ -1344,10 +1357,18 @@ function applyHeroSettings(settings){
 }
 async function loadSettings(){
   try{
-    const res = await fetch(`${CONFIG.API_URL}?action=getSettings`);
+    const res = await fetch(`settings.json?v=${Date.now()}`);
+    if(!res.ok) throw new Error('no static file yet');
     const data = await res.json();
-    if(data.ok) applyHeroSettings(data.settings);
-  }catch(err){ /* keep default hero if backend isn't connected yet */ }
+    if(data.ok) { applyHeroSettings(data.settings); return; }
+    throw new Error('static settings not ready');
+  }catch(err){
+    try{
+      const res2 = await fetch(`${CONFIG.API_URL}?action=getSettings`);
+      const data2 = await res2.json();
+      if(data2.ok) applyHeroSettings(data2.settings);
+    }catch(err2){ /* keep default hero if backend isn't connected yet */ }
+  }
 }
 
 renderCart();
