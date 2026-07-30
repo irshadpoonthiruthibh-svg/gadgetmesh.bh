@@ -1,0 +1,44 @@
+name: Sync product data
+
+# Runs automatically every 10 minutes, and you can also trigger it manually
+# from the Actions tab right after editing your Google Sheet for an
+# almost-instant update instead of waiting for the schedule.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch latest products
+        run: |
+          curl -sSL "https://script.google.com/macros/s/AKfycbw0Ybqx_ciLojRPERMqzvDpK2uGukA9TDm0pxxi3tMG6Eb-uhx_trhQAY6jokmyimKH/exec?action=listProducts" -o products.json
+          echo "--- products.json preview ---"
+          head -c 300 products.json
+
+      - name: Fetch latest hero/settings
+        run: |
+          curl -sSL "https://script.google.com/macros/s/AKfycbw0Ybqx_ciLojRPERMqzvDpK2uGukA9TDm0pxxi3tMG6Eb-uhx_trhQAY6jokmyimKH/exec?action=getSettings" -o settings.json
+          echo "--- settings.json preview ---"
+          head -c 300 settings.json
+
+      - name: Validate JSON before committing
+        run: |
+          python3 -c "import json,sys; json.load(open('products.json'))" || (echo "products.json invalid, aborting"; exit 1)
+          python3 -c "import json,sys; json.load(open('settings.json'))" || (echo "settings.json invalid, aborting"; exit 1)
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add products.json settings.json
+          git diff --cached --quiet || git commit -m "Sync product data [skip ci]"
+          git push
