@@ -708,10 +708,20 @@ function renderOrderRows(){
           <input type="text" id="trackUrl_${o.id}" placeholder="Tracking link" value="${o.trackingUrl||''}" style="width:100%;margin-bottom:5px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
           <button class="ghost small" onclick="saveTracking('${o.id}')">Save</button>
         </td>
-        <td><button class="ghost small" onclick="toggleDetails('od${idx}')">Details</button></td>
+        <td>
+          <button class="ghost small" onclick="toggleDetails('od${idx}')">Details</button>
+          <button class="ghost small" style="color:#B34141;border-color:#F2C9C9;margin-top:4px;" onclick="deleteOrder('${o.id}')">Delete</button>
+        </td>
       </tr>
     `;
   }).join('') : `<tr class="empty-row"><td colspan="8">No orders match yet.</td></tr>`;
+}
+async function deleteOrder(id){
+  if(!confirm(`Delete order ${id}? This can't be undone — only this order is removed, every other order stays exactly as it is.`)) return;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteOrder', password: ADMIN_PASSWORD, id }) });
+  ORDERS = ORDERS.filter(o => o.id !== id);
+  renderOrderRows();
+  renderDashboard();
 }
 async function saveTracking(id){
   const trackingNumber = document.getElementById('trackNum_'+id).value.trim();
