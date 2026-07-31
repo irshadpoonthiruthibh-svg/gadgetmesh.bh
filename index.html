@@ -48,7 +48,68 @@
   .reveal-stagger.in > *:nth-child(6){transition-delay:.38s;}
   @media (prefers-reduced-motion: reduce){
     .reveal, .reveal-stagger > *{opacity:1!important;transform:none!important;transition:none!important;}
+    .fly-to-cart{display:none!important;}
+    .cart-btn.bump, .add-btn.pop, .btn-primary.pop{animation:none!important;}
   }
+
+  /* ---- add-to-cart flight + bump ---- */
+  .fly-to-cart{
+    position:fixed; width:46px; height:46px; object-fit:cover; border-radius:12px;
+    z-index:9999; pointer-events:none; box-shadow:0 10px 26px rgba(28,28,30,.28);
+    transition:transform .68s cubic-bezier(.17,.85,.35,1.15), opacity .68s ease .1s;
+    will-change:transform, opacity;
+  }
+  .cart-btn{position:relative;}
+  .cart-btn.bump{animation:cartBump .5s var(--ease);}
+  @keyframes cartBump{
+    0%{transform:scale(1);}
+    35%{transform:scale(1.18) rotate(-4deg);}
+    60%{transform:scale(.94) rotate(2deg);}
+    100%{transform:scale(1) rotate(0);}
+  }
+  .badge-count.bump{animation:badgeBump .5s var(--ease);}
+  @keyframes badgeBump{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.4);background:var(--blush-deep);}
+    100%{transform:scale(1);}
+  }
+  .add-btn.pop, .btn-primary.pop{animation:btnPop .35s var(--ease);}
+  @keyframes btnPop{
+    0%{transform:scale(1);}
+    45%{transform:scale(.92);}
+    100%{transform:scale(1);}
+  }
+
+  /* ---- account panel tabs (orders / addresses / profile) ---- */
+  .acct-tabs{display:flex;gap:6px;margin:0 0 18px;border-bottom:1px solid var(--line);}
+  .acct-tab{background:none;border:none;padding:10px 4px;margin-right:18px;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s ease, border-color .15s ease;}
+  .acct-tab.active{color:var(--ink);border-color:var(--blush-deep);}
+  .acct-panel{display:none;}
+  .acct-panel.active{display:block;}
+
+  .addr-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;position:relative;}
+  .addr-card.is-default{border-color:var(--blush-deep);background:var(--paper-soft);}
+  .addr-label-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .addr-label{font-weight:800;font-size:13.5px;}
+  .addr-default-pill{font-size:10.5px;font-weight:800;color:var(--blush-ink);background:#fff;border:1px solid var(--blush-deep);border-radius:20px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
+  .addr-name{font-size:13.5px;font-weight:600;margin-bottom:2px;}
+  .addr-phone{font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .addr-text{font-size:13px;color:var(--ink-soft);line-height:1.5;}
+  .addr-actions{display:flex;gap:14px;margin-top:10px;}
+  .addr-actions a{font-size:12.5px;font-weight:700;color:var(--blush-ink);cursor:pointer;}
+  .addr-actions a.danger{color:#B34141;}
+  .addr-add-btn{width:100%;border:1.5px dashed var(--line);background:none;border-radius:14px;padding:14px;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .15s ease, color .15s ease;}
+  .addr-add-btn:hover{border-color:var(--blush-deep);color:var(--blush-ink);}
+
+  .saved-addr-pick{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+  .saved-addr-opt{border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;transition:border-color .15s ease, background .15s ease;}
+  .saved-addr-opt.selected{border-color:var(--blush-deep);background:var(--paper-soft);}
+  .saved-addr-opt .sa-label{font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px;}
+  .saved-addr-opt .sa-text{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+
+  .forgot-link{display:block;text-align:right;font-size:12.5px;font-weight:700;color:var(--blush-ink);margin:-10px 0 16px;cursor:pointer;}
+  .save-addr-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);margin:-6px 0 16px;}
+  .save-addr-check input{width:16px;height:16px;}
 
   .mesh-bg{position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
   .mesh-bg svg{position:absolute; opacity:0.55;}
@@ -468,7 +529,9 @@
       <div class="acct-wrap">
         <button class="acct-btn" id="acctBtn" onclick="onAcctBtnClick()">Login</button>
         <div class="acct-menu" id="acctMenu">
-          <a href="javascript:void(0)" onclick="openMyOrders()">📦 My orders</a>
+          <a href="javascript:void(0)" onclick="openMyOrders('orders')">📦 My orders</a>
+          <a href="javascript:void(0)" onclick="openMyOrders('addresses')">🏠 Saved addresses</a>
+          <a href="javascript:void(0)" onclick="openMyOrders('profile')">⚙️ Profile</a>
           <a href="javascript:void(0)" onclick="doLogout()">↩ Log out</a>
         </div>
       </div>
@@ -535,7 +598,7 @@
       <h2>Featured this week</h2>
       <p>A short list we personally rate — swipe through.</p>
     </div>
-    <div class="rail-scroll" id="featuredRail"></div>
+    <div class="rail-scroll reveal-stagger" id="featuredRail"></div>
   </div>
 </section>
 
@@ -546,7 +609,7 @@
       <h2>Best sellers</h2>
       <p>What Bahrain keeps adding to cart.</p>
     </div>
-    <div class="rail-scroll" id="bestsellersRail"></div>
+    <div class="rail-scroll reveal-stagger" id="bestsellersRail"></div>
   </div>
 </section>
 
@@ -645,9 +708,11 @@
     <button class="close-x" onclick="closeCheckout()">✕</button>
     <div id="checkoutStep1">
       <h3>Checkout</h3>
-      <div class="field"><label>Full name</label><input type="text" id="custName" placeholder="Your name"></div>
-      <div class="field"><label>Mobile number</label><input type="text" id="custPhone" placeholder="+973 3xxx xxxx"></div>
-      <div class="field"><label>Delivery address</label><textarea id="custAddress" rows="3" placeholder="Block, road, building, flat, city"></textarea></div>
+      <div class="saved-addr-pick" id="savedAddrPicker" style="display:none;"></div>
+      <div class="field"><label>Full name</label><input type="text" id="custName" placeholder="Your name" oninput="onCheckoutFieldsEdited()"></div>
+      <div class="field"><label>Mobile number</label><input type="text" id="custPhone" placeholder="+973 3xxx xxxx" oninput="onCheckoutFieldsEdited()"></div>
+      <div class="field"><label>Delivery address</label><textarea id="custAddress" rows="3" placeholder="Block, road, building, flat, city" oninput="onCheckoutFieldsEdited()"></textarea></div>
+      <div class="save-addr-check" id="saveAddrCheckWrap" style="display:none;"><input type="checkbox" id="saveThisAddress"><label for="saveThisAddress">Save this address for next time</label></div>
       <div class="field">
         <label>Payment method</label>
         <div class="pay-options" id="payOptions"></div>
@@ -675,9 +740,28 @@
       <p style="color:var(--ink-soft);font-size:13px;margin:-8px 0 16px;">An account keeps your order history and delivery details ready for next time.</p>
       <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com"></div>
       <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <a class="forgot-link" href="javascript:void(0)" onclick="openForgotPassword()">Forgot password?</a>
       <p class="auth-error" id="loginError"></p>
       <button class="submit-btn" onclick="doLogin()">Log in</button>
       <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);">New here? <a href="javascript:void(0)" onclick="showAuthPanel('register')" style="color:var(--blush-ink);font-weight:700;">Create an account</a></p>
+    </div>
+
+    <div id="authForgotPanel" style="display:none;">
+      <h3>Reset your password</h3>
+      <p style="color:var(--ink-soft);font-size:13px;margin:-8px 0 16px;">Enter your account email and we'll send a reset link.</p>
+      <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@email.com"></div>
+      <p class="auth-error" id="forgotError"></p>
+      <p id="forgotSuccess" style="color:#2E7D32;font-size:13px;font-weight:600;min-height:16px;"></p>
+      <button class="submit-btn" onclick="doRequestReset()">Send reset link</button>
+      <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);"><a href="javascript:void(0)" onclick="showAuthPanel('login')" style="color:var(--blush-ink);font-weight:700;">← Back to log in</a></p>
+    </div>
+
+    <div id="authResetPanel" style="display:none;">
+      <h3>Choose a new password</h3>
+      <p style="color:var(--ink-soft);font-size:13px;margin:-8px 0 16px;">Resetting the password for <strong id="resetEmailLabel"></strong>.</p>
+      <div class="field"><label>New password <span style="font-weight:500;color:var(--ink-soft);">(min 6 characters)</span></label><input type="password" id="resetNewPassword" placeholder="••••••••"></div>
+      <p class="auth-error" id="resetError"></p>
+      <button class="submit-btn" onclick="doResetPassword()">Set new password</button>
     </div>
 
     <div id="authRegisterPanel" style="display:none;">
@@ -697,8 +781,42 @@
 <div class="modal-overlay" id="ordersOverlay">
   <div class="modal" style="max-width:560px;">
     <button class="close-x" onclick="closeMyOrders()">✕</button>
-    <h3>My orders</h3>
-    <div id="myOrdersList"><p style="color:var(--ink-soft);font-size:14px;">Loading your orders…</p></div>
+    <h3>My account</h3>
+    <div class="acct-tabs">
+      <button class="acct-tab" id="tabBtnOrders" onclick="switchAcctTab('orders')">Orders</button>
+      <button class="acct-tab" id="tabBtnAddresses" onclick="switchAcctTab('addresses')">Addresses</button>
+      <button class="acct-tab" id="tabBtnProfile" onclick="switchAcctTab('profile')">Profile</button>
+    </div>
+
+    <div class="acct-panel" id="tabOrders">
+      <div id="myOrdersList"><p style="color:var(--ink-soft);font-size:14px;">Loading your orders…</p></div>
+    </div>
+
+    <div class="acct-panel" id="tabAddresses">
+      <div id="addressList"></div>
+      <button class="addr-add-btn" onclick="openAddressForm()">+ Add a new address</button>
+      <div id="addressForm" style="display:none;margin-top:16px;">
+        <input type="hidden" id="addrId">
+        <div class="field"><label>Label</label><input type="text" id="addrLabel" placeholder="Home, Work, etc."></div>
+        <div class="field"><label>Full name</label><input type="text" id="addrFullName" placeholder="Recipient's name"></div>
+        <div class="field"><label>Mobile number</label><input type="text" id="addrPhone" placeholder="+973 3xxx xxxx"></div>
+        <div class="field"><label>Address</label><textarea id="addrAddress" rows="3" placeholder="Block, road, building, flat, city"></textarea></div>
+        <div class="save-addr-check"><input type="checkbox" id="addrIsDefault"><label for="addrIsDefault">Set as default address</label></div>
+        <p class="auth-error" id="addrError"></p>
+        <button class="submit-btn" onclick="saveAddress()">Save address</button>
+        <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="closeAddressForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="acct-panel" id="tabProfile">
+      <div class="field"><label>Full name</label><input type="text" id="profName"></div>
+      <div class="field"><label>Mobile number</label><input type="text" id="profPhone"></div>
+      <div class="field"><label>Email</label><input type="email" id="profEmail" disabled style="opacity:.6;"></div>
+      <p class="auth-error" id="profError"></p>
+      <p id="profSuccess" style="color:#2E7D32;font-size:13px;font-weight:600;min-height:16px;"></p>
+      <button class="submit-btn" onclick="saveProfile()">Save changes</button>
+      <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);">Want to change your password? <a href="javascript:void(0)" onclick="closeMyOrders();openForgotPassword();" style="color:var(--blush-ink);font-weight:700;">Reset it by email</a></p>
+    </div>
   </div>
 </div>
 
@@ -731,7 +849,7 @@
           </div>
         </div>
         <div class="pdp-actions">
-          <button class="btn-primary" id="pdpAddBtn" onclick="pdpAddToCart()">Add to cart</button>
+          <button class="btn-primary" id="pdpAddBtn" onclick="popButton(this);pdpAddToCart(event)">Add to cart</button>
           <button class="btn-ghost" onclick="pdpBuyNow()">Buy now</button>
         </div>
         <div class="pdp-trust">
@@ -759,6 +877,9 @@ let CART = JSON.parse(localStorage.getItem('gm_cart') || '[]');
 let CUSTOMER = JSON.parse(localStorage.getItem('gm_customer') || 'null');
 let activeCategory = 'All';
 let pendingAfterAuth = null; // 'checkout' | null
+let PENDING_RESET = { token:null, email:null };
+let ADDRESSES = [];
+let checkoutSelectedAddressId = null;
 
 document.getElementById('waFooterLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi GadgetMesh.bh, I have a question about my order.')}`;
 
@@ -794,13 +915,22 @@ document.addEventListener('click', (e) => {
   if(menu && menu.classList.contains('show') && !e.target.closest('.acct-wrap')) menu.classList.remove('show');
 });
 
-/* ================= my orders ================= */
-function openMyOrders(){
+/* ================= my account (orders / addresses / profile) ================= */
+function openMyOrders(tab){
   document.getElementById('acctMenu').classList.remove('show');
   document.getElementById('ordersOverlay').classList.add('show');
-  loadMyOrders();
+  switchAcctTab(tab || 'orders');
 }
 function closeMyOrders(){ document.getElementById('ordersOverlay').classList.remove('show'); }
+function switchAcctTab(tab){
+  ['orders','addresses','profile'].forEach(t => {
+    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+    document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+  });
+  if(tab === 'orders') loadMyOrders();
+  if(tab === 'addresses') loadAddresses();
+  if(tab === 'profile') loadProfile();
+}
 async function loadMyOrders(){
   const wrap = document.getElementById('myOrdersList');
   if(!CUSTOMER){ wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Please log in to see your orders.</p>'; return; }
@@ -836,6 +966,131 @@ function orderCardHtml(o){
   `;
 }
 
+/* ================= saved addresses ================= */
+async function loadAddresses(){
+  const wrap = document.getElementById('addressList');
+  closeAddressForm();
+  if(!CUSTOMER){ wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Please log in to manage addresses.</p>'; return; }
+  wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Loading your addresses…</p>';
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listAddresses', customerId: CUSTOMER.id }) });
+    const data = await res.json();
+    ADDRESSES = data.addresses || [];
+    renderAddressList();
+  }catch(err){
+    wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Could not load your addresses right now.</p>';
+  }
+}
+function renderAddressList(){
+  const wrap = document.getElementById('addressList');
+  if(!ADDRESSES.length){ wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No saved addresses yet — add one below for faster checkout.</p>'; return; }
+  wrap.innerHTML = ADDRESSES.map(a => `
+    <div class="addr-card ${isTrue(a.isDefault) ? 'is-default' : ''}">
+      <div class="addr-label-row">
+        <span class="addr-label">${a.label || 'Address'}</span>
+        ${isTrue(a.isDefault) ? '<span class="addr-default-pill">Default</span>' : ''}
+      </div>
+      <div class="addr-name">${a.fullName || ''}</div>
+      <div class="addr-phone">${a.phone || ''}</div>
+      <div class="addr-text">${a.address || ''}</div>
+      <div class="addr-actions">
+        <a onclick="editAddress('${a.id}')">Edit</a>
+        ${!isTrue(a.isDefault) ? `<a onclick="makeDefaultAddress('${a.id}')">Set as default</a>` : ''}
+        <a class="danger" onclick="deleteAddress('${a.id}')">Delete</a>
+      </div>
+    </div>
+  `).join('');
+}
+function isTrue(v){ return v === true || v === 'TRUE' || v === 1 || v === '1'; }
+function openAddressForm(){
+  document.getElementById('addrId').value = '';
+  document.getElementById('addrLabel').value = '';
+  document.getElementById('addrFullName').value = CUSTOMER ? CUSTOMER.name || '' : '';
+  document.getElementById('addrPhone').value = CUSTOMER ? CUSTOMER.phone || '' : '';
+  document.getElementById('addrAddress').value = '';
+  document.getElementById('addrIsDefault').checked = ADDRESSES.length === 0;
+  document.getElementById('addrError').textContent = '';
+  document.getElementById('addressForm').style.display = 'block';
+}
+function closeAddressForm(){
+  const form = document.getElementById('addressForm');
+  if(form) form.style.display = 'none';
+}
+function editAddress(id){
+  const a = ADDRESSES.find(x => x.id === id);
+  if(!a) return;
+  document.getElementById('addrId').value = a.id;
+  document.getElementById('addrLabel').value = a.label || '';
+  document.getElementById('addrFullName').value = a.fullName || '';
+  document.getElementById('addrPhone').value = a.phone || '';
+  document.getElementById('addrAddress').value = a.address || '';
+  document.getElementById('addrIsDefault').checked = isTrue(a.isDefault);
+  document.getElementById('addrError').textContent = '';
+  document.getElementById('addressForm').style.display = 'block';
+}
+async function saveAddress(){
+  if(!CUSTOMER) return;
+  const id = document.getElementById('addrId').value;
+  const label = document.getElementById('addrLabel').value.trim() || 'Home';
+  const fullName = document.getElementById('addrFullName').value.trim();
+  const phone = document.getElementById('addrPhone').value.trim();
+  const address = document.getElementById('addrAddress').value.trim();
+  const isDefault = document.getElementById('addrIsDefault').checked;
+  const errEl = document.getElementById('addrError');
+  errEl.textContent = '';
+  if(!fullName || !phone || !address){ errEl.textContent = 'Please fill in name, phone and address.'; return; }
+  try{
+    const action = id ? 'updateAddress' : 'addAddress';
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action, id, customerId: CUSTOMER.id, label, fullName, phone, address, isDefault }) });
+    const data = await res.json();
+    if(!data.ok){ errEl.textContent = data.error || 'Could not save this address.'; return; }
+    closeAddressForm();
+    loadAddresses();
+  }catch(err){ errEl.textContent = 'Could not reach the server. Check your connection and try again.'; }
+}
+async function makeDefaultAddress(id){
+  if(!CUSTOMER) return;
+  try{
+    await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'setDefaultAddress', id, customerId: CUSTOMER.id }) });
+    loadAddresses();
+  }catch(err){ alert('Could not reach the server. Please try again.'); }
+}
+async function deleteAddress(id){
+  if(!confirm('Delete this address?')) return;
+  try{
+    await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteAddress', id }) });
+    loadAddresses();
+  }catch(err){ alert('Could not reach the server. Please try again.'); }
+}
+
+/* ================= profile ================= */
+function loadProfile(){
+  if(!CUSTOMER) return;
+  document.getElementById('profName').value = CUSTOMER.name || '';
+  document.getElementById('profPhone').value = CUSTOMER.phone || '';
+  document.getElementById('profEmail').value = CUSTOMER.email || '';
+  document.getElementById('profError').textContent = '';
+  document.getElementById('profSuccess').textContent = '';
+}
+async function saveProfile(){
+  if(!CUSTOMER) return;
+  const name = document.getElementById('profName').value.trim();
+  const phone = document.getElementById('profPhone').value.trim();
+  const errEl = document.getElementById('profError');
+  const okEl = document.getElementById('profSuccess');
+  errEl.textContent = ''; okEl.textContent = '';
+  if(!name){ errEl.textContent = 'Name is required.'; return; }
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateProfile', email: CUSTOMER.email, name, phone }) });
+    const data = await res.json();
+    if(!data.ok){ errEl.textContent = data.error || 'Could not update your profile.'; return; }
+    CUSTOMER = Object.assign({}, CUSTOMER, data.customer);
+    localStorage.setItem('gm_customer', JSON.stringify(CUSTOMER));
+    updateAcctButton();
+    okEl.textContent = '✓ Saved.';
+  }catch(err){ errEl.textContent = 'Could not reach the server. Check your connection and try again.'; }
+}
+
 /* ================= newsletter ================= */
 async function subscribeNewsletter(){
   const emailEl = document.getElementById('newsletterEmail');
@@ -866,8 +1121,44 @@ function closeAuth(){
 function showAuthPanel(panel){
   document.getElementById('authLoginPanel').style.display = panel === 'login' ? 'block' : 'none';
   document.getElementById('authRegisterPanel').style.display = panel === 'register' ? 'block' : 'none';
+  document.getElementById('authForgotPanel').style.display = panel === 'forgot' ? 'block' : 'none';
+  document.getElementById('authResetPanel').style.display = panel === 'reset' ? 'block' : 'none';
   document.getElementById('loginError').textContent = '';
   document.getElementById('regError').textContent = '';
+}
+function openForgotPassword(){
+  document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
+  document.getElementById('forgotError').textContent = '';
+  document.getElementById('forgotSuccess').textContent = '';
+  showAuthPanel('forgot');
+  document.getElementById('authOverlay').classList.add('show');
+}
+async function doRequestReset(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const errEl = document.getElementById('forgotError');
+  const okEl = document.getElementById('forgotSuccess');
+  errEl.textContent = ''; okEl.textContent = '';
+  if(!email){ errEl.textContent = 'Please enter your email.'; return; }
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'requestPasswordReset', email }) });
+    const data = await res.json();
+    okEl.textContent = data.message || "If an account exists with that email, a reset link is on its way.";
+  }catch(err){ errEl.textContent = 'Could not reach the server. Check your connection and try again.'; }
+}
+async function doResetPassword(){
+  const newPassword = document.getElementById('resetNewPassword').value;
+  const errEl = document.getElementById('resetError');
+  errEl.textContent = '';
+  if(!newPassword || newPassword.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if(!PENDING_RESET.token || !PENDING_RESET.email){ errEl.textContent = 'This reset link is missing information. Please request a new one.'; return; }
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'resetPassword', email: PENDING_RESET.email, token: PENDING_RESET.token, newPassword }) });
+    const data = await res.json();
+    if(!data.ok){ errEl.textContent = data.error || 'Could not reset your password.'; return; }
+    PENDING_RESET = { token:null, email:null };
+    onAuthSuccess(data.customer);
+    alert('Your password has been reset and you are now logged in.');
+  }catch(err){ errEl.textContent = 'Could not reach the server. Check your connection and try again.'; }
 }
 async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
@@ -909,6 +1200,25 @@ function onAuthSuccess(customer){
   }
 }
 updateAcctButton();
+
+/* Detect a password-reset link (?resetToken=...&resetEmail=...) and open
+   the reset panel automatically, then clean the URL so refreshing doesn't
+   re-trigger it. */
+(function checkForResetLink(){
+  const params = new URLSearchParams(location.search);
+  const token = params.get('resetToken');
+  const email = params.get('resetEmail');
+  if(token && email){
+    PENDING_RESET = { token, email };
+    document.getElementById('resetEmailLabel').textContent = email;
+    showAuthPanel('reset');
+    document.getElementById('authOverlay').classList.add('show');
+    const url = new URL(location.href);
+    url.searchParams.delete('resetToken');
+    url.searchParams.delete('resetEmail');
+    history.replaceState({}, '', url.pathname + url.hash);
+  }
+})();
 
 const CATEGORY_ICONS = { 'Audio':'🎧','Charging':'🔌','Wearables':'⌚','Accessories':'🧩','Smart Home':'🏠','Cables':'🔗','General':'✨' };
 
@@ -1027,7 +1337,7 @@ function productCardHtml(p){
         <div class="name">${p.name}</div>
         <div class="price-row">
           ${priceHtml(p)}
-          <button class="add-btn" onclick="event.stopPropagation();addToCart('${p.id}')">Add</button>
+          <button class="add-btn" onclick="event.stopPropagation();popButton(this);addToCart('${p.id}',1,event)">Add</button>
         </div>
       </div>
     </div>
@@ -1040,6 +1350,7 @@ function renderFeatured(){
   if(!items.length){ section.style.display='none'; return; }
   section.style.display='block';
   document.getElementById('featuredRail').innerHTML = items.map(p => productCardHtml(p)).join('');
+  requestAnimationFrame(() => observeReveal());
 }
 function renderBestsellers(){
   const items = PRODUCTS.filter(p => p.bestseller);
@@ -1047,19 +1358,60 @@ function renderBestsellers(){
   if(!items.length){ section.style.display='none'; return; }
   section.style.display='block';
   document.getElementById('bestsellersRail').innerHTML = items.map(p => productCardHtml(p)).join('');
+  requestAnimationFrame(() => observeReveal());
 }
 
-function addToCart(id, qty){
+function addToCart(id, qty, evt){
   qty = qty || 1;
+  const p = PRODUCTS.find(p => p.id === id);
   const existing = CART.find(i => i.id === id);
   if(existing) existing.qty += qty;
   else{
-    const p = PRODUCTS.find(p => p.id === id);
     if(!p) return;
     CART.push({ id, name:p.name, price:Number(p.price), image:p.images[0], qty });
   }
   saveCart();
+  if(evt && evt.target && p) flyToCart(evt.target, p.images[0]);
+  else bumpCartIcon();
   openCart();
+}
+
+/* ---- fly-to-cart animation ---- */
+function flyToCart(sourceEl, imgUrl){
+  try{
+    const cartBtn = document.querySelector('.cart-btn');
+    const originEl = sourceEl.closest('.card, .pdp-gallery-main') || sourceEl;
+    if(!cartBtn || !originEl){ bumpCartIcon(); return; }
+    const startRect = originEl.getBoundingClientRect();
+    const endRect = cartBtn.getBoundingClientRect();
+    if(startRect.width === 0 || startRect.height === 0){ bumpCartIcon(); return; }
+    const flyer = document.createElement('img');
+    flyer.src = imgUrl;
+    flyer.className = 'fly-to-cart';
+    const startX = startRect.left + startRect.width/2 - 23;
+    const startY = startRect.top + startRect.height/2 - 23;
+    flyer.style.left = startX + 'px';
+    flyer.style.top = startY + 'px';
+    document.body.appendChild(flyer);
+    const endX = endRect.left + endRect.width/2 - (startX + 23);
+    const endY = endRect.top + endRect.height/2 - (startY + 23);
+    requestAnimationFrame(() => {
+      flyer.style.transform = `translate(${endX}px, ${endY}px) scale(0.12)`;
+      flyer.style.opacity = '0.35';
+    });
+    setTimeout(() => { flyer.remove(); bumpCartIcon(); }, 680);
+  }catch(e){ bumpCartIcon(); }
+}
+function bumpCartIcon(){
+  const cartBtn = document.querySelector('.cart-btn');
+  const badge = document.getElementById('cartCount');
+  if(cartBtn){ cartBtn.classList.remove('bump'); void cartBtn.offsetWidth; cartBtn.classList.add('bump'); setTimeout(()=>cartBtn.classList.remove('bump'), 500); }
+  if(badge){ badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); setTimeout(()=>badge.classList.remove('bump'), 500); }
+}
+function popButton(el){
+  if(!el) return;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  setTimeout(()=>el.classList.remove('pop'), 350);
 }
 function changeQty(id, delta){
   const item = CART.find(i => i.id === id);
@@ -1128,9 +1480,9 @@ function pdpChangeQty(delta){
   PDP_QTY = Math.max(1, PDP_QTY + delta);
   document.getElementById('pdpQty').textContent = PDP_QTY;
 }
-function pdpAddToCart(){
+function pdpAddToCart(evt){
   if(!PDP_PRODUCT) return;
-  addToCart(PDP_PRODUCT.id, PDP_QTY);
+  addToCart(PDP_PRODUCT.id, PDP_QTY, evt);
 }
 function pdpBuyNow(){
   if(!PDP_PRODUCT) return;
@@ -1221,7 +1573,60 @@ function openCheckout(){
   document.getElementById('checkoutStep2').style.display='none';
   document.getElementById('custName').value = CUSTOMER.name || '';
   document.getElementById('custPhone').value = CUSTOMER.phone || '';
+  document.getElementById('custAddress').value = '';
+  checkoutSelectedAddressId = null;
+  document.getElementById('saveAddrCheckWrap').style.display = 'none';
   document.getElementById('checkoutOverlay').classList.add('show');
+  loadCheckoutAddresses();
+}
+async function loadCheckoutAddresses(){
+  const picker = document.getElementById('savedAddrPicker');
+  picker.style.display = 'none';
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listAddresses', customerId: CUSTOMER.id }) });
+    const data = await res.json();
+    ADDRESSES = data.addresses || [];
+    if(!ADDRESSES.length) return;
+    picker.style.display = 'flex';
+    picker.innerHTML = ADDRESSES.map(a => `
+      <div class="saved-addr-opt" data-id="${a.id}" onclick="pickCheckoutAddress('${a.id}')">
+        <div class="sa-label">${a.label || 'Address'} ${isTrue(a.isDefault) ? '· Default' : ''}</div>
+        <div class="sa-text">${a.fullName || ''} — ${a.phone || ''}<br>${a.address || ''}</div>
+      </div>
+    `).join('') + `
+      <div class="saved-addr-opt" data-id="" onclick="pickCheckoutAddress('')">
+        <div class="sa-label">+ Use a new address</div>
+      </div>
+    `;
+    const def = ADDRESSES.find(a => isTrue(a.isDefault)) || ADDRESSES[0];
+    if(def) pickCheckoutAddress(def.id);
+  }catch(err){ /* saved addresses are a convenience — fine to skip silently if offline */ }
+}
+function pickCheckoutAddress(id){
+  checkoutSelectedAddressId = id || null;
+  document.querySelectorAll('.saved-addr-opt').forEach(el => el.classList.toggle('selected', el.dataset.id === id));
+  document.getElementById('saveAddrCheckWrap').style.display = id ? 'none' : 'flex';
+  if(id){
+    const a = ADDRESSES.find(x => x.id === id);
+    if(a){
+      document.getElementById('custName').value = a.fullName || CUSTOMER.name || '';
+      document.getElementById('custPhone').value = a.phone || '';
+      document.getElementById('custAddress').value = a.address || '';
+    }
+  } else {
+    document.getElementById('custName').value = CUSTOMER.name || '';
+    document.getElementById('custPhone').value = CUSTOMER.phone || '';
+    document.getElementById('custAddress').value = '';
+  }
+}
+function onCheckoutFieldsEdited(){
+  // If the customer starts typing over a saved address, treat it as a new
+  // address so we don't silently save changes onto their saved entry.
+  if(checkoutSelectedAddressId){
+    checkoutSelectedAddressId = null;
+    document.querySelectorAll('.saved-addr-opt').forEach(el => el.classList.remove('selected'));
+    document.getElementById('saveAddrCheckWrap').style.display = 'flex';
+  }
 }
 function closeCheckout(){ document.getElementById('checkoutOverlay').classList.remove('show'); }
 
@@ -1233,6 +1638,15 @@ async function placeOrder(){
   const method = document.querySelector('input[name=pay]:checked')?.value;
   if(!name || !phone || !address){ alert('Please fill in your name, phone and address.'); return; }
   if(!CART.length){ alert('Your cart is empty.'); return; }
+
+  if(!checkoutSelectedAddressId && document.getElementById('saveThisAddress').checked){
+    try{
+      await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({
+        action:'addAddress', customerId: CUSTOMER.id, label:'Home', fullName:name, phone, address,
+        isDefault: ADDRESSES.length === 0
+      }) });
+    }catch(err){ /* saving the address is a convenience — don't block the order over it */ }
+  }
 
   const orderPayload = {
     action:'placeOrder', customerName:name, customerEmail: CUSTOMER.email, phone, address,
