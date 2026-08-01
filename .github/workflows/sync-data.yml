@@ -1,66 +1,37 @@
-name: Sync product data
+name: Auto Sync Products JSON
 
-# Runs automatically every 10 minutes, and you can also trigger it manually
-# from the Actions tab right after editing your Google Sheet for an
-# almost-instant update instead of waiting for the schedule.
 on:
   schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch: {}
-
-permissions:
-  contents: write
+    # Runs at minute 0 of every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Fetch latest products
+      - name: Fetch Latest Products from Google Sheets API
         run: |
-          HTTP_CODE=$(curl -sSL -A "Mozilla/5.0 (compatible; GadgetMeshSync/1.0)" \
-            -w "%{http_code}" \
-            "https://script.google.com/macros/s/AKfycbwvs23LIQ8fEbQNUGpuvDjyYkGPzrKGP0ip5UaVOlyRZh5qR5F_ImvzXTp6NVOYddk/exec?action=listProducts" \
-            -o products.json)
-          echo "HTTP status: $HTTP_CODE"
-          echo "--- products.json size ---"
-          wc -c products.json
-          echo "--- products.json preview ---"
-          cat products.json | head -c 500
-          echo ""
-          if [ ! -s products.json ]; then
-            echo "::error::products.json came back empty (HTTP $HTTP_CODE) — check the Apps Script deployment access settings"
-            exit 1
-          fi
+          curl -L "https://script.google.com/macros/s/AKfycbxBOkF0IhCcZEDTcEN2XkQ89wTaw3S72QpakJgpCyxsRR9Bew6syulKKY4XVhZubUNp5g/exec" -o products.json.tmp
+          node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync("products.json.tmp"));
+            if (data.ok && Array.isArray(data.products)) {
+              fs.writeFileSync("products.json", JSON.stringify(data.products, null, 2));
+              console.log("products.json updated successfully.");
+            } else {
+              console.error("Invalid response format");
+              process.exit(1);
+            }
+          '
+          rm products.json.tmp
 
-      - name: Fetch latest hero/settings
+      - name: Commit and Push Changes
         run: |
-          HTTP_CODE=$(curl -sSL -A "Mozilla/5.0 (compatible; GadgetMeshSync/1.0)" \
-            -w "%{http_code}" \
-            "https://script.google.com/macros/s/AKfycbwvs23LIQ8fEbQNUGpuvDjyYkGPzrKGP0ip5UaVOlyRZh5qR5F_ImvzXTp6NVOYddk/exec?action=getSettings" \
-            -o settings.json)
-          echo "HTTP status: $HTTP_CODE"
-          echo "--- settings.json size ---"
-          wc -c settings.json
-          echo "--- settings.json preview ---"
-          cat settings.json | head -c 500
-          echo ""
-          if [ ! -s settings.json ]; then
-            echo "::error::settings.json came back empty (HTTP $HTTP_CODE) — check the Apps Script deployment access settings"
-            exit 1
-          fi
-
-      - name: Validate JSON before committing
-        run: |
-          python3 -c "import json,sys; json.load(open('products.json'))" || (echo "products.json invalid, aborting"; exit 1)
-          python3 -c "import json,sys; json.load(open('settings.json'))" || (echo "settings.json invalid, aborting"; exit 1)
-
-      - name: Commit if changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add products.json settings.json
-          git diff --cached --quiet || git commit -m "Sync product data [skip ci]"
-          git push
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+          git add products.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update products.json from Google Sheets" && git push)
