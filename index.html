@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GadgetMesh.bh - The complete solution for Gadgets</title>
+<title>GadgetMesh.bh — Tech essentials for Bahrain</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -728,14 +728,14 @@
         </div>
         <span class="word" style="color:#fff;">GADGETMESH</span>
       </div>
-      <p style="font-size:13px;color:#b8b3b3;line-height:1.6;max-width:260px;">Shop the Hottest Gadgets Before They Disappear.</p>
+      <p style="font-size:13px;color:#b8b3b3;line-height:1.6;max-width:260px;">Tech essentials for Bahrain, priced in BHD. Cash on delivery, BenefitPay, and card options at checkout.</p>
     </div>
     <div><h4>Shop</h4><a href="#shop">All products</a><a href="#categories">Categories</a><a href="#reviews">Reviews</a><a href="about-us.html">About us</a></div>
     <div><h4>Support</h4><a id="waFooterLink" href="#" target="_blank">WhatsApp us</a><a href="delivery-policy.html">Delivery policy</a><a href="return-refund-policy.html">Returns &amp; refunds</a></div>
     <div><h4>Payments</h4><a href="#">BenefitPay QR</a><a href="#">Cash on delivery</a><a href="#">Card / GPay</a></div>
   </div>
   <div class="foot-bottom">
-    <span>© 2026 GadgetMesh.bh </span>
+    <span>© 2026 GadgetMesh.bh — a Bahrain community storefront.</span>
     <span>Prices shown in BHD.</span>
   </div>
 </footer>
@@ -1798,11 +1798,24 @@ async function loadReviews(productId){
   const wrap = document.getElementById('reviewsList');
   wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Loading reviews…</p>';
   try{
-    const res = await fetch(`${CONFIG.API_URL}?action=listReviews&productId=${encodeURIComponent(productId)}`);
+    const res = await fetch(`${CONFIG.API_URL}?action=listReviews&productId=${encodeURIComponent(productId)}&_=${Date.now()}`, { cache: 'no-store' });
     const data = await res.json();
     REVIEWS = data.reviews || [];
     updateReviewsSummary();
     renderReviewList();
+    // Keep the PDP's top rating summary and the product's card rating in
+    // sync too, since both were set from the once-loaded PRODUCTS list.
+    const count = REVIEWS.length;
+    const avg = count ? REVIEWS.reduce((s,r) => s + Number(r.rating), 0) / count : 0;
+    if(PDP_PRODUCT && PDP_PRODUCT.id === productId){
+      PDP_PRODUCT.avgRating = avg;
+      PDP_PRODUCT.reviewCount = count;
+      document.getElementById('pdpStars').innerHTML = count
+        ? `${renderStars(avg)} <span style="font-size:12.5px;color:var(--ink-soft);">${avg.toFixed(1)} (${count} review${count===1?'':'s'})</span>`
+        : `<span style="font-size:12.5px;color:var(--ink-soft);">No reviews yet — be the first</span>`;
+    }
+    const p = PRODUCTS.find(p => p.id === productId);
+    if(p){ p.avgRating = avg; p.reviewCount = count; }
   }catch(err){
     wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Could not load reviews right now.</p>';
   }
