@@ -15,12 +15,24 @@
     "active": true,
     "featured": false,
     "bestseller": false,
-    "colors": "Pink, White"
+    "colors": "Pink,",
+    "images": [
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785307430/Screenshot_2026-07-29_093924_mxbhsu.jpg",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785316217/5b370144-d531-4934-b9f6-69d6c2a7199e_map6ld.avif",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785316217/9bd2c3f9-12d9-4e34-848e-e2742becce20_iv1ewp.avif",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785316217/42a3920f-1a4b-4e05-a1e3-ad86ed9af8a0_ecwidc.avif",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785316217/2652557f-5c91-4e37-b7dc-c02c9fc38322_fpaqkj.avif"
+    ],
+    "colorsList": [
+      "Pink"
+    ],
+    "avgRating": 5,
+    "reviewCount": 2
   },
   {
     "id": "P-1785600485091",
     "name": "Refillable Perfume Spray Bottles",
-    "description": "Refillable Perfume Spray Bottle\n\nCarry your favorite fragrance wherever you go with this sleek and portable Refillable Perfume Spray Bottle. Designed for convenience, it lets you refill your perfume in seconds without spills or waste. Its lightweight, leak-proof design fits easily into your pocket, handbag, or travel bag, making it perfect for daily use, travel, work, or special occasions.\n\nFeatures:\n✨ Easy bottom-refill design\n💧 Leak-proof and durable aluminum body\n🎒 Compact and travel-friendly\n🌸 Fine mist spray for even fragrance application\n♻️ Reusable and eco-friendly\n💄 Ideal for perfume, cologne, and body mist\n\nWhether you’re heading to work, traveling, or going out, enjoy your favorite scent anytime, anywhere with this stylish refillable perfume atomizer.",
+    "description": "Refillable Perfume Spray Bottle\n\nCarry your favorite fragrance wherever you go with this sleek and portable Refillable Perfume Spray Bottle. Designed for convenience, it lets you refill your perfume in seconds without spills or waste. Its lightweight, leak-proof design fits easily into your pocket, handbag, or travel bag, making it perfect for daily use, travel, work, or special occasions.\n\nFeatures:\n\n* ✨ Easy bottom-refill design\n* 💧 Leak-proof and durable aluminum body\n* 🎒 Compact and travel-friendly\n* 🌸 Fine mist spray for even fragrance application\n* ♻️ Reusable and eco-friendly\n* 💄 Ideal for perfume, cologne, and body mist\n\nWhether you’re heading to work, traveling, or going out, enjoy your favorite scent anytime, anywhere with this stylish refillable perfume atomizer.",
     "price": 3.5,
     "compareAtPrice": 5.9,
     "image1": "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600047/IMG_8792_k8ezpt.jpg",
@@ -33,6 +45,18 @@
     "active": true,
     "featured": false,
     "bestseller": false,
-    "colors": "5pcs #Random Colors"
+    "colors": "5pcs #Random Colors,",
+    "images": [
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600047/IMG_8792_k8ezpt.jpg",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600048/IMG_8790_b2c8ns.jpg",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600048/IMG_8791_fakm7t.jpg",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600047/IMG_8789_toqxqd.jpg",
+      "https://res.cloudinary.com/cxcbhpbm/image/upload/v1785600191/IMG_8793_htta0i.jpg"
+    ],
+    "colorsList": [
+      "5pcs #Random Colors"
+    ],
+    "avgRating": 0,
+    "reviewCount": 0
   }
 ]
