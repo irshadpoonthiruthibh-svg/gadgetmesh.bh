@@ -93,7 +93,17 @@
   .field label .opt{font-weight:500;color:var(--ink-soft);}
   .field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:13.5px;background:#fff;}
   .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--blush-deep);}
-  .field textarea{resize:vertical;min-height:70px;}
+  .rev-modal-overlay{position:fixed;inset:0;background:rgba(28,28,30,0.55);z-index:600;display:none;align-items:center;justify-content:center;padding:16px;}
+  .rev-modal-overlay.show{display:flex;}
+  .rev-modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:26px;position:relative;}
+  .rev-modal .close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-soft);}
+  .rev-card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .rev-card .rev-stars{color:#E0A800;font-size:13px;}
+  .rev-card .rev-name{font-weight:700;font-size:13px;}
+  .rev-card .rev-text{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .rev-card textarea{width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;margin-top:6px;}
+  .rev-card select{padding:6px 8px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;margin-top:6px;}
+
 
   .img-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:6px;}
   .img-slot{position:relative;}
@@ -260,6 +270,7 @@
           <div class="field"><label>Stock</label><input id="pStock" type="number" value="10"></div>
         </div>
         <div class="field full"><label>Description</label><textarea id="pDesc" placeholder="Short, honest description customers will see on the product page."></textarea></div>
+        <div class="field full"><label>Color variants <span class="opt">— optional, comma separated (e.g. Black, White, Blue)</span></label><input id="pColors" placeholder="e.g. Black, White, Blue"></div>
 
         <div class="field full">
           <label>Product images <span class="opt">— paste up to 5 image URLs · image 1 is the main photo</span></label>
@@ -364,7 +375,7 @@
           </select>
         </div>
         <table>
-          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Order status</th><th>Payment status</th><th>Tracking</th><th></th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Total / Paid / Due</th><th>Payment mode</th><th>Order status</th><th>Payment status</th><th>Tracking</th><th></th></tr></thead>
           <tbody id="orderRows"></tbody>
         </table>
       </div>
@@ -571,6 +582,7 @@ function renderProductRows(){
       <td>${flags}</td>
       <td style="white-space:nowrap;">
         <button class="ghost small" onclick='editProduct("${p.id}")'>Edit</button>
+        <button class="ghost small" onclick='openProductReviews("${p.id}","${(p.name||'').replace(/"/g,'&quot;')}")'>Reviews</button>
         <button class="ghost small danger" onclick="deleteProduct('${p.id}')">Delete</button>
       </td>
     </tr>`;
@@ -588,6 +600,7 @@ function editProduct(id){
   document.getElementById('pCategory').value = p.category||'';
   document.getElementById('pStock').value = p.stock;
   document.getElementById('pDesc').value = p.description||'';
+  document.getElementById('pColors').value = p.colors || '';
   const imgs = p.images || [];
   for(let i=0;i<5;i++){
     const v = imgs[i] || '';
@@ -604,7 +617,7 @@ function editProduct(id){
 }
 function resetForm(){
   document.getElementById('formTitle').textContent = 'Add a product';
-  ['pId','pName','pPrice','pCompareAt','pCategory','pStock','pDesc'].forEach(id => document.getElementById(id).value='');
+  ['pId','pName','pPrice','pCompareAt','pCategory','pStock','pDesc','pColors'].forEach(id => document.getElementById(id).value='');
   for(let i=1;i<=5;i++){ document.getElementById('pImg'+i).value=''; document.getElementById('imgPrev'+i).src='https://placehold.co/200x200/F7F5F5/8A3B3B?text=%20'; }
   document.getElementById('pActive').checked = true;
   document.getElementById('pFeatured').checked = false;
@@ -630,6 +643,7 @@ async function saveProduct(){
     category: document.getElementById('pCategory').value.trim(),
     stock: Number(document.getElementById('pStock').value || 0),
     description: document.getElementById('pDesc').value.trim(),
+    colors: document.getElementById('pColors').value.trim(),
     images,
     active: document.getElementById('pActive').checked,
     featured: document.getElementById('pFeatured').checked,
@@ -654,6 +668,97 @@ async function deleteProduct(id){
   await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteProduct', password: ADMIN_PASSWORD, id }) });
   await loadProducts();
   renderDashboard();
+}
+
+/* ---------------- product reviews ---------------- */
+let REV_PRODUCT_ID = null;
+let REV_LIST = [];
+
+function openProductReviews(productId, productName){
+  REV_PRODUCT_ID = productId;
+  document.getElementById('revModalTitle').textContent = `Reviews — ${productName}`;
+  document.getElementById('revNewName').value = '';
+  document.getElementById('revNewText').value = '';
+  document.getElementById('revNewRating').value = '5';
+  document.getElementById('revAddMsg').textContent = '';
+  document.getElementById('revOverlay').classList.add('show');
+  loadProductReviews();
+}
+function closeProductReviews(){ document.getElementById('revOverlay').classList.remove('show'); }
+
+async function loadProductReviews(){
+  const wrap = document.getElementById('revList');
+  wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">Loading…</p>';
+  try{
+    const res = await fetch(`${CONFIG.API_URL}?action=listReviews&productId=${encodeURIComponent(REV_PRODUCT_ID)}`);
+    const data = await res.json();
+    REV_LIST = data.reviews || [];
+    renderReviewRows();
+  }catch(err){
+    wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">Could not load reviews.</p>';
+  }
+}
+function renderReviewRows(){
+  const wrap = document.getElementById('revList');
+  if(!REV_LIST.length){ wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">No reviews for this product yet.</p>'; return; }
+  wrap.innerHTML = REV_LIST.map(r => `
+    <div class="rev-card" id="revCard_${r.id}">
+      <div class="rev-name">${r.customerName || 'Anonymous'}</div>
+      <div class="rev-stars">${'★'.repeat(Number(r.rating))}${'☆'.repeat(5-Number(r.rating))}</div>
+      <div class="rev-text">${r.text || ''}</div>
+      <div style="margin-top:8px;">
+        <button class="ghost small" onclick="editReviewInline('${r.id}')">Edit</button>
+        <button class="ghost small danger" onclick="adminDeleteReview('${r.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+function editReviewInline(id){
+  const r = REV_LIST.find(x => x.id === id);
+  if(!r) return;
+  const card = document.getElementById('revCard_'+id);
+  card.innerHTML = `
+    <div class="field"><label>Customer name</label><input id="editName_${id}" value="${(r.customerName||'').replace(/"/g,'&quot;')}"></div>
+    <select id="editRating_${id}">
+      ${[5,4,3,2,1].map(n => `<option value="${n}" ${Number(r.rating)===n?'selected':''}>${'★'.repeat(n)}${'☆'.repeat(5-n)} (${n})</option>`).join('')}
+    </select>
+    <textarea id="editText_${id}" rows="3">${r.text||''}</textarea>
+    <div style="margin-top:8px;">
+      <button class="primary" style="padding:6px 14px;font-size:12.5px;" onclick="adminSaveReviewEdit('${id}')">Save</button>
+      <button class="ghost small" onclick="renderReviewRows()">Cancel</button>
+    </div>
+  `;
+}
+async function adminSaveReviewEdit(id){
+  const customerName = document.getElementById('editName_'+id).value.trim();
+  const rating = Number(document.getElementById('editRating_'+id).value);
+  const text = document.getElementById('editText_'+id).value.trim();
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateReview', password: ADMIN_PASSWORD, id, customerName, rating, text }) });
+  await loadProductReviews();
+}
+async function adminDeleteReview(id){
+  if(!confirm('Delete this review?')) return;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteReview', password: ADMIN_PASSWORD, id }) });
+  await loadProductReviews();
+}
+const RANDOM_REVIEW_NAMES = ['Ahmed Al Khalifa','Fatima Al Mahmood','Yousif Al Ansari','Mariam Al Bin Ali','Khalid Al Dosari','Noor Al Sayed','Hassan Al Jamri','Layla Al Haddad','Omar Al Sulaiti','Aisha Al Rumaihi','Salman Al Zayani','Reem Al Qahtani','Abdulla Al Fardan','Huda Al Marzooqi','Ali Al Sabt'];
+function fillRandomReviewName(){
+  const name = RANDOM_REVIEW_NAMES[Math.floor(Math.random() * RANDOM_REVIEW_NAMES.length)];
+  document.getElementById('revNewName').value = name;
+}
+async function adminAddReview(){
+  const customerName = document.getElementById('revNewName').value.trim() || 'GadgetMesh Team';
+  const rating = Number(document.getElementById('revNewRating').value);
+  const text = document.getElementById('revNewText').value.trim();
+  const msg = document.getElementById('revAddMsg');
+  msg.textContent = '';
+  if(!text){ msg.textContent = 'Please write review text.'; return; }
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'addReviewAdmin', password: ADMIN_PASSWORD, productId: REV_PRODUCT_ID, customerName, rating, text }) });
+  const data = await res.json();
+  if(!data.ok){ msg.textContent = data.error || 'Could not add review.'; return; }
+  document.getElementById('revNewName').value = '';
+  document.getElementById('revNewText').value = '';
+  loadProductReviews();
 }
 
 /* ---------------- orders ---------------- */
@@ -691,7 +796,13 @@ function renderOrderRows(){
           </div>
         </td>
         <td>${o.customerName||'—'}</td>
-        <td>${Number(o.total).toFixed(3)} BHD</td>
+        <td style="min-width:150px;">
+          <div><strong>Total:</strong> ${Number(o.total).toFixed(3)} BHD</div>
+          <div style="color:#2E7D32;"><strong>Paid:</strong> ${Number(o.paidAmount||0).toFixed(3)} BHD</div>
+          <div style="color:${(Number(o.total)-Number(o.paidAmount||0))>0.001?'#B34141':'var(--ink-soft)'};"><strong>Due:</strong> ${Math.max(0, Number(o.total)-Number(o.paidAmount||0)).toFixed(3)} BHD</div>
+          <input type="number" step="0.001" id="paidAmt_${o.id}" placeholder="Set paid amount" value="${o.paidAmount||0}" style="width:100%;margin-top:5px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+          <button class="ghost small" style="margin-top:4px;" onclick="savePaidAmount('${o.id}')">Update paid</button>
+        </td>
         <td>${o.paymentMethod||'—'}</td>
         <td>
           <select class="status" onchange="updateOrder('${o.id}','orderStatus',this.value)">
@@ -699,7 +810,7 @@ function renderOrderRows(){
           </select>
         </td>
         <td>
-          <select class="status" onchange="updateOrder('${o.id}','paymentStatus',this.value)">
+          <select class="status" onchange="updatePaymentStatus('${o.id}',this.value)">
             ${['pending','paid'].map(s => `<option value="${s}" ${o.paymentStatus===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </td>
@@ -738,6 +849,28 @@ async function updateOrder(id, field, value){
   await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(payload) });
   const o = ORDERS.find(o => o.id === id);
   if(o) o[field] = value;
+  renderDashboard();
+}
+// Marking an order "paid" auto-fills paidAmount to the full total on the
+// backend (unless a specific amount was already set) — so after this call
+// we re-fetch that order's row locally to keep the Total/Paid/Due display
+// accurate without needing a full page reload.
+async function updatePaymentStatus(id, value){
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateOrderStatus', password: ADMIN_PASSWORD, id, paymentStatus: value }) });
+  const o = ORDERS.find(o => o.id === id);
+  if(o){
+    o.paymentStatus = value;
+    if(value === 'paid') o.paidAmount = o.total;
+  }
+  renderOrderRows();
+  renderDashboard();
+}
+async function savePaidAmount(id){
+  const val = Number(document.getElementById('paidAmt_'+id).value) || 0;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateOrderStatus', password: ADMIN_PASSWORD, id, paidAmount: val }) });
+  const o = ORDERS.find(o => o.id === id);
+  if(o) o.paidAmount = val;
+  renderOrderRows();
   renderDashboard();
 }
 
@@ -943,5 +1076,23 @@ async function loadCampaigns(){
 const savedPw = sessionStorage.getItem('gm_admin_pw');
 if(savedPw){ document.getElementById('pwInput').value = savedPw; login(); }
 </script>
+<div class="rev-modal-overlay" id="revOverlay">
+  <div class="rev-modal">
+    <button class="close-x" onclick="closeProductReviews()">✕</button>
+    <h3 id="revModalTitle" style="margin:0 0 4px;">Reviews</h3>
+    <p style="color:var(--ink-soft);font-size:13px;margin:0 0 18px;">Edit or delete a review if it's misleading, or add one yourself.</p>
+    <div id="revList"><p style="color:var(--ink-soft);font-size:13px;">Loading…</p></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:18px 0;">
+    <h4 style="margin:0 0 10px;font-size:14px;">Add a review</h4>
+    <div class="field"><label>Customer name</label><div style="display:flex;gap:8px;"><input id="revNewName" placeholder="e.g. Ahmed" style="flex:1;"><button type="button" class="ghost small" onclick="fillRandomReviewName()">🎲 Random name</button></div></div>
+    <div class="field">
+      <label>Rating</label>
+      <select id="revNewRating"><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select>
+    </div>
+    <div class="field"><label>Review text</label><textarea id="revNewText" rows="3"></textarea></div>
+    <p id="revAddMsg" style="font-size:12.5px;color:#B34141;min-height:16px;"></p>
+    <button class="primary" onclick="adminAddReview()">Add review</button>
+  </div>
+</div>
 </body>
 </html>
