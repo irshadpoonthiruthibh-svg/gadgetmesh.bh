@@ -492,6 +492,10 @@
   .pay-opt .pt{font-weight:700;font-size:14px;}
   .pay-opt .pd{font-size:12px;color:var(--ink-soft);margin-top:2px;}
   .submit-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:15px;cursor:pointer;}
+  .submit-btn:disabled,.wa-btn:disabled{opacity:0.65;cursor:not-allowed;}
+  .btn-spinner{display:none;width:14px;height:14px;margin-left:9px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;vertical-align:-2px;animation:btnspin .7s linear infinite;}
+  .btn-spinner.show{display:inline-block;}
+  @keyframes btnspin{to{transform:rotate(360deg);}}
   .auth-error{color:#B23B2E;font-size:12.5px;margin:-6px 0 12px;min-height:14px;}
   .close-x{position:absolute;top:16px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);}
   .confirm-box{text-align:center;padding:10px 0;}
@@ -792,7 +796,7 @@
         <label>Payment method</label>
         <div class="pay-options" id="payOptions"></div>
       </div>
-      <button class="submit-btn" onclick="placeOrder()">Place order — <span id="modalTotal">0.000 BHD</span></button>
+      <button class="submit-btn" id="checkoutSubmitBtn" onclick="placeOrder()"><span id="submitBtnLabel">Place order</span> — <span id="modalTotal">0.000 BHD</span><span class="btn-spinner" id="submitBtnSpinner"></span></button>
     </div>
     <div id="checkoutStepQR" style="display:none;">
       <div class="qr-page">
@@ -813,7 +817,7 @@
           6. Tap <b>Payment done</b> below — this places your order and sends your screenshot to us on WhatsApp
         </div>
         <div class="qr-actions">
-          <button class="wa-btn" id="qrPaidBtn" style="border:none;cursor:pointer;font-family:inherit;font-size:15px;" onclick="onQrPaidClick()">✅ Payment done — send screenshot on WhatsApp</button>
+          <button class="wa-btn" id="qrPaidBtn" style="border:none;cursor:pointer;font-family:inherit;font-size:15px;" onclick="onQrPaidClick()"><span id="qrPaidBtnLabel">✅ Payment done — send screenshot on WhatsApp</span><span class="btn-spinner" id="qrPaidBtnSpinner"></span></button>
           <a class="qr-help-btn" id="qrHelpBtn" href="#" target="_blank">🙋 Not confident about the QR? Talk to our team</a>
         </div>
         <p style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Your order is only placed once you tap "Payment done" above.</p>
@@ -1977,14 +1981,22 @@ const PAYMENT_METHODS = [
 function buildPayOptions(){
   document.getElementById('payOptions').innerHTML = PAYMENT_METHODS.map((m,idx) => `
     <label class="pay-opt ${idx===0?'selected':''}" onclick="selectPay(this)">
-      <input type="radio" name="pay" value="${m.id}" ${idx===0?'checked':''}>
+      <input type="radio" name="pay" value="${m.id}" ${idx===0?'checked':''} onchange="updateSubmitBtnLabel()">
       <div><div class="pt">${m.label}</div><div class="pd">${m.desc}</div></div>
     </label>
   `).join('');
+  updateSubmitBtnLabel();
 }
 function selectPay(el){
   document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
+  updateSubmitBtnLabel();
+}
+function updateSubmitBtnLabel(){
+  const method = document.querySelector('input[name=pay]:checked')?.value;
+  const label = document.getElementById('submitBtnLabel');
+  if(!label) return;
+  label.textContent = method === 'benefitpay' ? 'Proceed with BenefitPay QR' : 'Place order';
 }
 
 function openCheckout(){
@@ -2000,6 +2012,9 @@ function openCheckout(){
   document.getElementById('checkoutStep2').style.display='none';
   pendingOrderPayload = null;
   pendingOrderId = null;
+  isPlacingOrder = false;
+  document.getElementById('checkoutSubmitBtn').disabled = false;
+  document.getElementById('submitBtnSpinner').classList.remove('show');
   document.getElementById('guestBanner').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custEmailField').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custName').value = CUSTOMER ? CUSTOMER.name || '' : '';
@@ -2084,7 +2099,10 @@ function closeCheckout(){ document.getElementById('checkoutOverlay').classList.r
 let pendingOrderPayload = null;
 let pendingOrderId = null;
 
+let isPlacingOrder = false;
+
 async function placeOrder(){
+  if(isPlacingOrder) return;
   if(!CUSTOMER && !GUEST_MODE){ openCheckout(); return; }
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
@@ -2103,49 +2121,65 @@ async function placeOrder(){
 
   const address = `Flat/Shop ${flat}, Building ${building}, Road ${road}, Block ${block}, ${area}`;
 
-  if(CUSTOMER && !checkoutSelectedAddressId && document.getElementById('saveThisAddress').checked){
-    try{
-      await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({
-        action:'addAddress', customerId: CUSTOMER.id, label:'Home', fullName:name, phone,
-        flat, building, road, block, area, isDefault: ADDRESSES.length === 0
-      }) });
-    }catch(err){ /* saving the address is a convenience — don't block the order over it */ }
-  }
+  const submitBtn = document.getElementById('checkoutSubmitBtn');
+  const submitLabel = document.getElementById('submitBtnLabel');
+  const submitSpinner = document.getElementById('submitBtnSpinner');
+  const originalLabelText = submitLabel.textContent;
+  isPlacingOrder = true;
+  submitBtn.disabled = true;
+  submitSpinner.classList.add('show');
+  submitLabel.textContent = method === 'benefitpay' ? 'Preparing BenefitPay QR' : 'Placing order';
 
-  const orderPayload = {
-    action:'placeOrder', customerName:name, customerEmail: email, phone, address,
-    items: CART, total: cartTotal(), paymentMethod: method
-  };
-
-  if(method === 'benefitpay'){
-    // Don't place the order yet — the customer still has to pay and confirm.
-    // The backend call happens in onQrPaidClick() once they tap "Payment done".
-    pendingOrderPayload = orderPayload;
-    pendingOrderId = 'ORD-' + Date.now();
-    document.getElementById('checkoutStep1').style.display='none';
-    document.getElementById('checkoutStep2').style.display='none';
-    showBenefitPayQr(pendingOrderId, cartTotal());
-    return;
-  }
-
-  // Cash on Delivery — place the order right away as before.
-  let orderId = 'ORD-' + Date.now();
   try{
-    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(orderPayload) });
-    const data = await res.json();
-    if(data.orderId) orderId = data.orderId;
-  }catch(err){ /* backend not connected yet — still show confirmation */ }
+    if(CUSTOMER && !checkoutSelectedAddressId && document.getElementById('saveThisAddress').checked){
+      try{
+        await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({
+          action:'addAddress', customerId: CUSTOMER.id, label:'Home', fullName:name, phone,
+          flat, building, road, block, area, isDefault: ADDRESSES.length === 0
+        }) });
+      }catch(err){ /* saving the address is a convenience — don't block the order over it */ }
+    }
 
-  document.getElementById('checkoutStep1').style.display='none';
-  document.getElementById('checkoutStepQR').style.display='none';
-  document.getElementById('checkoutStep2').style.display='block';
-  document.getElementById('confirmTitle').textContent = 'Order confirmed';
-  document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
-  document.getElementById('confirmWaBtn').style.display = 'none';
-  document.getElementById('confirmWaQueryLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I have a question about my order ' + orderId + '.')}`;
+    const orderPayload = {
+      action:'placeOrder', customerName:name, customerEmail: email, phone, address,
+      items: CART, total: cartTotal(), paymentMethod: method
+    };
 
-  CART = [];
-  saveCart();
+    if(method === 'benefitpay'){
+      // Don't place the order yet — the customer still has to pay and confirm.
+      // The backend call happens in onQrPaidClick() once they tap "Payment done".
+      pendingOrderPayload = orderPayload;
+      pendingOrderId = 'ORD-' + Date.now();
+      document.getElementById('checkoutStep1').style.display='none';
+      document.getElementById('checkoutStep2').style.display='none';
+      showBenefitPayQr(pendingOrderId, cartTotal());
+      return;
+    }
+
+    // Cash on Delivery — place the order right away as before.
+    let orderId = 'ORD-' + Date.now();
+    try{
+      const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(orderPayload) });
+      const data = await res.json();
+      if(data.orderId) orderId = data.orderId;
+    }catch(err){ /* backend not connected yet — still show confirmation */ }
+
+    document.getElementById('checkoutStep1').style.display='none';
+    document.getElementById('checkoutStepQR').style.display='none';
+    document.getElementById('checkoutStep2').style.display='block';
+    document.getElementById('confirmTitle').textContent = 'Order confirmed';
+    document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
+    document.getElementById('confirmWaBtn').style.display = 'none';
+    document.getElementById('confirmWaQueryLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I have a question about my order ' + orderId + '.')}`;
+
+    CART = [];
+    saveCart();
+  } finally {
+    isPlacingOrder = false;
+    submitBtn.disabled = false;
+    submitSpinner.classList.remove('show');
+    submitLabel.textContent = originalLabelText;
+  }
 }
 
 let qrCurrentAmount = '0.000';
@@ -2160,12 +2194,18 @@ function showBenefitPayQr(orderId, total){
   document.getElementById('qrHelpBtn').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(helpMsg)}`;
 }
 
+let isSubmittingQrPayment = false;
 async function onQrPaidClick(){
+  if(isSubmittingQrPayment) return;
+  isSubmittingQrPayment = true;
+
   const btn = document.getElementById('qrPaidBtn');
-  const originalLabel = btn.textContent;
-  btn.textContent = 'Placing your order…';
+  const label = document.getElementById('qrPaidBtnLabel');
+  const spinner = document.getElementById('qrPaidBtnSpinner');
+  const originalLabel = label.textContent;
   btn.disabled = true;
-  btn.style.opacity = '0.7';
+  spinner.classList.add('show');
+  label.textContent = 'Placing your order…';
 
   let orderId = pendingOrderId;
   try{
@@ -2190,9 +2230,10 @@ async function onQrPaidClick(){
   saveCart();
   pendingOrderPayload = null;
   pendingOrderId = null;
-  btn.textContent = originalLabel;
+  isSubmittingQrPayment = false;
   btn.disabled = false;
-  btn.style.opacity = '';
+  spinner.classList.remove('show');
+  label.textContent = originalLabel;
 }
 
 function copyQrAmount(){
