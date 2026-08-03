@@ -809,12 +809,14 @@
           2. Tap <b>Scan &amp; Pay</b> and scan the QR code above<br>
           3. Enter the exact amount shown above<br>
           4. Complete the payment in the app<br>
-          5. Tap the button below and send us your payment screenshot
+          5. Take a screenshot of the payment success screen<br>
+          6. Tap <b>Payment done</b> below — this places your order and sends your screenshot to us on WhatsApp
         </div>
         <div class="qr-actions">
-          <a class="wa-btn" id="qrPaidBtn" href="#" target="_blank" onclick="onQrPaidClick()">✅ I've paid — send screenshot on WhatsApp</a>
+          <button class="wa-btn" id="qrPaidBtn" style="border:none;cursor:pointer;font-family:inherit;font-size:15px;" onclick="onQrPaidClick()">✅ Payment done — send screenshot on WhatsApp</button>
           <a class="qr-help-btn" id="qrHelpBtn" href="#" target="_blank">🙋 Not confident about the QR? Talk to our team</a>
         </div>
+        <p style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Your order is only placed once you tap "Payment done" above.</p>
         <div class="qr-confidence">
           <b>🔒 Paying with BenefitPay is safe</b>
           BenefitPay runs on Benefit Company's national payment network, regulated by the Central Bank of Bahrain. Your card and bank details are never shared with us — we only see your payment confirmation. Thousands of customers in Bahrain use it every day for everyday purchases.
@@ -828,7 +830,8 @@
         <h3 id="confirmTitle">Order received</h3>
         <p id="confirmText" style="color:var(--ink-soft);font-size:14px;"></p>
         <a class="wa-btn" id="confirmWaBtn" href="#" target="_blank" style="display:none;">📲 Continue on WhatsApp</a><br>
-        <button class="submit-btn" style="margin-top:16px;" onclick="closeCheckout()">Done</button>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:12px;">Any query? <a id="confirmWaQueryLink" href="#" target="_blank" style="color:var(--blush-ink);font-weight:700;">WhatsApp us</a></p>
+        <button class="submit-btn" style="margin-top:8px;" onclick="closeCheckout()">Done</button>
       </div>
     </div>
   </div>
@@ -1995,6 +1998,8 @@ function openCheckout(){
   document.getElementById('checkoutStep1').style.display='block';
   document.getElementById('checkoutStepQR').style.display='none';
   document.getElementById('checkoutStep2').style.display='none';
+  pendingOrderPayload = null;
+  pendingOrderId = null;
   document.getElementById('guestBanner').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custEmailField').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custName').value = CUSTOMER ? CUSTOMER.name || '' : '';
@@ -2076,6 +2081,9 @@ function onCheckoutFieldsEdited(){
 }
 function closeCheckout(){ document.getElementById('checkoutOverlay').classList.remove('show'); }
 
+let pendingOrderPayload = null;
+let pendingOrderId = null;
+
 async function placeOrder(){
   if(!CUSTOMER && !GUEST_MODE){ openCheckout(); return; }
   const name = document.getElementById('custName').value.trim();
@@ -2109,6 +2117,18 @@ async function placeOrder(){
     items: CART, total: cartTotal(), paymentMethod: method
   };
 
+  if(method === 'benefitpay'){
+    // Don't place the order yet — the customer still has to pay and confirm.
+    // The backend call happens in onQrPaidClick() once they tap "Payment done".
+    pendingOrderPayload = orderPayload;
+    pendingOrderId = 'ORD-' + Date.now();
+    document.getElementById('checkoutStep1').style.display='none';
+    document.getElementById('checkoutStep2').style.display='none';
+    showBenefitPayQr(pendingOrderId, cartTotal());
+    return;
+  }
+
+  // Cash on Delivery — place the order right away as before.
   let orderId = 'ORD-' + Date.now();
   try{
     const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(orderPayload) });
@@ -2116,19 +2136,13 @@ async function placeOrder(){
     if(data.orderId) orderId = data.orderId;
   }catch(err){ /* backend not connected yet — still show confirmation */ }
 
-  const waBtn = document.getElementById('confirmWaBtn');
-  if(method === 'benefitpay'){
-    document.getElementById('checkoutStep1').style.display='none';
-    document.getElementById('checkoutStep2').style.display='none';
-    showBenefitPayQr(orderId, cartTotal());
-  } else {
-    document.getElementById('checkoutStep1').style.display='none';
-    document.getElementById('checkoutStepQR').style.display='none';
-    document.getElementById('checkoutStep2').style.display='block';
-    document.getElementById('confirmTitle').textContent = 'Order confirmed';
-    document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
-    waBtn.style.display = 'none';
-  }
+  document.getElementById('checkoutStep1').style.display='none';
+  document.getElementById('checkoutStepQR').style.display='none';
+  document.getElementById('checkoutStep2').style.display='block';
+  document.getElementById('confirmTitle').textContent = 'Order confirmed';
+  document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
+  document.getElementById('confirmWaBtn').style.display = 'none';
+  document.getElementById('confirmWaQueryLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I have a question about my order ' + orderId + '.')}`;
 
   CART = [];
   saveCart();
@@ -2138,25 +2152,49 @@ let qrCurrentAmount = '0.000';
 function showBenefitPayQr(orderId, total){
   document.getElementById('checkoutStepQR').style.display='block';
   qrCurrentAmount = total.toFixed(3);
-  document.getElementById('qrOrderLine').textContent = `Order ${orderId} — pay the exact amount below, then send us your screenshot.`;
+  document.getElementById('qrOrderLine').textContent = `Reference ${orderId} — complete the BenefitPay payment below, then tap "Payment done" to place your order.`;
   document.getElementById('qrAmount').textContent = `${qrCurrentAmount} BHD`;
   document.getElementById('qrImage').src = CONFIG.BENEFITPAY_QR_IMAGE;
 
-  const paidMsg = `Hi! I'd like to confirm payment for order ${orderId} (${qrCurrentAmount} BHD) via BenefitPay. Sending my payment screenshot now.`;
-  document.getElementById('qrPaidBtn').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(paidMsg)}`;
-
-  const helpMsg = `Hi! I'm not confident scanning the BenefitPay QR for order ${orderId} (${qrCurrentAmount} BHD). Could someone guide me through the payment?`;
+  const helpMsg = `Hi! I'm not confident scanning the BenefitPay QR for order reference ${orderId} (${qrCurrentAmount} BHD). Could someone guide me through the payment?`;
   document.getElementById('qrHelpBtn').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(helpMsg)}`;
-
-  window.__qrOrderId = orderId;
 }
-function onQrPaidClick(){
+
+async function onQrPaidClick(){
+  const btn = document.getElementById('qrPaidBtn');
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Placing your order…';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  let orderId = pendingOrderId;
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(pendingOrderPayload) });
+    const data = await res.json();
+    if(data.orderId) orderId = data.orderId;
+  }catch(err){ /* backend not connected yet — still proceed to WhatsApp + confirmation */ }
+
+  const paidMsg = `Hi! I've completed BenefitPay payment for order ${orderId} (${qrCurrentAmount} BHD). Sending my payment screenshot now.`;
+  window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(paidMsg)}`, '_blank');
+
   document.getElementById('checkoutStepQR').style.display='none';
   document.getElementById('checkoutStep2').style.display='block';
-  document.getElementById('confirmTitle').textContent = 'Thanks — confirming your payment';
-  document.getElementById('confirmText').textContent = `We've opened WhatsApp for order ${window.__qrOrderId} (${qrCurrentAmount} BHD). Send your BenefitPay screenshot there and we'll confirm your order shortly.`;
+  document.getElementById('confirmTitle').textContent = 'Order placed — payment verification pending';
+  document.getElementById('confirmText').innerHTML =
+    `Order ${orderId} for ${qrCurrentAmount} BHD is placed. It will be confirmed once our team verifies your BenefitPay payment screenshot on WhatsApp.<br><br>` +
+    `If we're unable to verify it, we'll message you on the WhatsApp number you provided, and the order will be cancelled from our side after following up with you.`;
   document.getElementById('confirmWaBtn').style.display = 'none';
+  document.getElementById('confirmWaQueryLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I have a question about my order ' + orderId + '.')}`;
+
+  CART = [];
+  saveCart();
+  pendingOrderPayload = null;
+  pendingOrderId = null;
+  btn.textContent = originalLabel;
+  btn.disabled = false;
+  btn.style.opacity = '';
 }
+
 function copyQrAmount(){
   navigator.clipboard?.writeText(qrCurrentAmount).then(() => {
     const btn = document.querySelector('.copy-amt');
