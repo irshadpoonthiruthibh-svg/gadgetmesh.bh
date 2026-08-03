@@ -498,6 +498,23 @@
   .confirm-box .checkmark{width:64px;height:64px;border-radius:50%;background:var(--blush);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;}
   .wa-btn{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:white;border:none;border-radius:12px;padding:13px 22px;font-weight:700;text-decoration:none;margin-top:10px;}
 
+  /* BenefitPay QR checkout step */
+  .qr-page{text-align:center;padding:2px 0;}
+  .qr-page h3{margin-bottom:4px;}
+  .qr-sub{font-size:13px;color:var(--ink-soft);margin-bottom:16px;}
+  .qr-amount{background:var(--paper-soft);border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;}
+  .qr-amount .lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);font-weight:700;}
+  .qr-amount .amt{font-family:'Sora';font-weight:800;font-size:24px;margin-top:4px;}
+  .qr-amount .copy-amt{margin-top:8px;background:none;border:1.5px solid var(--line);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink);}
+  .qr-imgwrap{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:16px;display:inline-block;margin-bottom:14px;}
+  .qr-imgwrap img{width:220px;height:220px;object-fit:contain;display:block;}
+  .qr-steps{text-align:left;font-size:12.5px;color:var(--ink-soft);background:var(--paper-soft);border-radius:12px;padding:12px 16px;margin-bottom:16px;line-height:1.7;}
+  .qr-actions{display:flex;flex-direction:column;gap:10px;align-items:center;}
+  .qr-help-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:11px 20px;font-weight:700;font-size:13.5px;text-decoration:none;color:var(--ink);}
+  .qr-confidence{text-align:left;background:#EFF7EF;border:1px solid #BFE0C0;border-radius:12px;padding:12px 16px;margin-top:16px;font-size:12.5px;color:#265E2A;line-height:1.6;}
+  .qr-confidence b{display:block;margin-bottom:3px;}
+
+
   @media (max-width:900px){
     .hero-grid{grid-template-columns:1fr;}
     .cat-grid{grid-template-columns:repeat(2,1fr);}
@@ -732,7 +749,7 @@
     </div>
     <div><h4>Shop</h4><a href="#shop">All products</a><a href="#categories">Categories</a><a href="#reviews">Reviews</a><a href="about-us.html">About us</a></div>
     <div><h4>Support</h4><a id="waFooterLink" href="#" target="_blank">WhatsApp us</a><a href="delivery-policy.html">Delivery policy</a><a href="return-refund-policy.html">Returns &amp; refunds</a></div>
-    <div><h4>Payments</h4><a href="#">BenefitPay QR</a><a href="#">Cash on delivery</a><a href="#">Card / GPay</a></div>
+    <div><h4>Payments</h4><a href="#">BenefitPay QR</a><a href="#">Cash on delivery</a></div>
   </div>
   <div class="foot-bottom">
     <span>© 2026 GadgetMesh.bh</span>
@@ -776,6 +793,34 @@
         <div class="pay-options" id="payOptions"></div>
       </div>
       <button class="submit-btn" onclick="placeOrder()">Place order — <span id="modalTotal">0.000 BHD</span></button>
+    </div>
+    <div id="checkoutStepQR" style="display:none;">
+      <div class="qr-page">
+        <h3>Scan &amp; pay with BenefitPay</h3>
+        <p class="qr-sub" id="qrOrderLine">Order — will be confirmed once payment is received.</p>
+        <div class="qr-amount">
+          <div class="lbl">Amount to send</div>
+          <div class="amt" id="qrAmount">0.000 BHD</div>
+          <button class="copy-amt" onclick="copyQrAmount()">📋 Copy amount</button>
+        </div>
+        <div class="qr-imgwrap"><img id="qrImage" src="assets/benefitpay-qr.png" alt="GadgetMesh.bh BenefitPay QR code"></div>
+        <div class="qr-steps">
+          1. Open the <b>BenefitPay</b> app on your phone<br>
+          2. Tap <b>Scan &amp; Pay</b> and scan the QR code above<br>
+          3. Enter the exact amount shown above<br>
+          4. Complete the payment in the app<br>
+          5. Tap the button below and send us your payment screenshot
+        </div>
+        <div class="qr-actions">
+          <a class="wa-btn" id="qrPaidBtn" href="#" target="_blank" onclick="onQrPaidClick()">✅ I've paid — send screenshot on WhatsApp</a>
+          <a class="qr-help-btn" id="qrHelpBtn" href="#" target="_blank">🙋 Not confident about the QR? Talk to our team</a>
+        </div>
+        <div class="qr-confidence">
+          <b>🔒 Paying with BenefitPay is safe</b>
+          BenefitPay runs on Benefit Company's national payment network, regulated by the Central Bank of Bahrain. Your card and bank details are never shared with us — we only see your payment confirmation. Thousands of customers in Bahrain use it every day for everyday purchases.
+        </div>
+        <button class="submit-btn" style="margin-top:18px;background:none;color:var(--ink-soft);font-weight:600;" onclick="closeCheckout()">I'll do this later</button>
+      </div>
     </div>
     <div id="checkoutStep2" style="display:none;">
       <div class="confirm-box">
@@ -971,7 +1016,10 @@
 <script>
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbxBOkF0IhCcZEDTcEN2XkQ89wTaw3S72QpakJgpCyxsRR9Bew6syulKKY4XVhZubUNp5g/exec',
-  WHATSAPP_NUMBER: '97335184023'
+  WHATSAPP_NUMBER: '97335184023',
+  // TODO: replace with your real BenefitPay QR image — upload it to the assets/ folder
+  // (as benefitpay-qr.png) or update this path to point at it.
+  BENEFITPAY_QR_IMAGE: 'assets/benefitpay-qr.png'
 };
 
 let PRODUCTS = [];
@@ -1920,10 +1968,8 @@ function openCart(){ document.getElementById('overlay').classList.add('show'); d
 function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
 
 const PAYMENT_METHODS = [
-  { id:'benefitpay', label:'BenefitPay QR', desc:"We'll open WhatsApp — send your BenefitPay screenshot there and we confirm your order." },
-  { id:'cod', label:'Cash on Delivery', desc:'Pay in cash when your order arrives.' },
-  { id:'gpay', label:'GPay / card link', desc:"We'll send a secure payment link on WhatsApp." },
-  { id:'razorpay', label:'Card (Razorpay link)', desc:"We'll send a Razorpay payment link on WhatsApp." }
+  { id:'benefitpay', label:'BenefitPay QR', desc:"Scan our QR in the BenefitPay app, then send your screenshot on WhatsApp to confirm." },
+  { id:'cod', label:'Cash on Delivery', desc:'Pay in cash when your order arrives.' }
 ];
 function buildPayOptions(){
   document.getElementById('payOptions').innerHTML = PAYMENT_METHODS.map((m,idx) => `
@@ -1947,6 +1993,7 @@ function openCheckout(){
   }
   buildPayOptions();
   document.getElementById('checkoutStep1').style.display='block';
+  document.getElementById('checkoutStepQR').style.display='none';
   document.getElementById('checkoutStep2').style.display='none';
   document.getElementById('guestBanner').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custEmailField').style.display = GUEST_MODE ? 'block' : 'none';
@@ -2069,23 +2116,15 @@ async function placeOrder(){
     if(data.orderId) orderId = data.orderId;
   }catch(err){ /* backend not connected yet — still show confirmation */ }
 
-  document.getElementById('checkoutStep1').style.display='none';
-  document.getElementById('checkoutStep2').style.display='block';
-
   const waBtn = document.getElementById('confirmWaBtn');
   if(method === 'benefitpay'){
-    document.getElementById('confirmTitle').textContent = 'Almost done — send your BenefitPay payment';
-    document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD is saved. Tap below to open WhatsApp, then send your BenefitPay QR payment screenshot so we can confirm.`;
-    const msg = `Hi! I'd like to pay for order ${orderId} (${cartTotal().toFixed(3)} BHD) via BenefitPay. Sending my payment screenshot now.`;
-    waBtn.href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    waBtn.style.display = 'inline-flex';
-  } else if(method === 'gpay' || method === 'razorpay'){
-    document.getElementById('confirmTitle').textContent = 'Order saved — payment link on the way';
-    document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD is saved. Message us on WhatsApp to receive your ${method==='gpay'?'GPay':'Razorpay'} payment link.`;
-    const msg = `Hi! I'd like to pay for order ${orderId} (${cartTotal().toFixed(3)} BHD) using ${method==='gpay'?'GPay':'a card via Razorpay'}. Please send the payment link.`;
-    waBtn.href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    waBtn.style.display = 'inline-flex';
+    document.getElementById('checkoutStep1').style.display='none';
+    document.getElementById('checkoutStep2').style.display='none';
+    showBenefitPayQr(orderId, cartTotal());
   } else {
+    document.getElementById('checkoutStep1').style.display='none';
+    document.getElementById('checkoutStepQR').style.display='none';
+    document.getElementById('checkoutStep2').style.display='block';
     document.getElementById('confirmTitle').textContent = 'Order confirmed';
     document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
     waBtn.style.display = 'none';
@@ -2094,6 +2133,40 @@ async function placeOrder(){
   CART = [];
   saveCart();
 }
+
+let qrCurrentAmount = '0.000';
+function showBenefitPayQr(orderId, total){
+  document.getElementById('checkoutStepQR').style.display='block';
+  qrCurrentAmount = total.toFixed(3);
+  document.getElementById('qrOrderLine').textContent = `Order ${orderId} — pay the exact amount below, then send us your screenshot.`;
+  document.getElementById('qrAmount').textContent = `${qrCurrentAmount} BHD`;
+  document.getElementById('qrImage').src = CONFIG.BENEFITPAY_QR_IMAGE;
+
+  const paidMsg = `Hi! I'd like to confirm payment for order ${orderId} (${qrCurrentAmount} BHD) via BenefitPay. Sending my payment screenshot now.`;
+  document.getElementById('qrPaidBtn').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(paidMsg)}`;
+
+  const helpMsg = `Hi! I'm not confident scanning the BenefitPay QR for order ${orderId} (${qrCurrentAmount} BHD). Could someone guide me through the payment?`;
+  document.getElementById('qrHelpBtn').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(helpMsg)}`;
+
+  window.__qrOrderId = orderId;
+}
+function onQrPaidClick(){
+  document.getElementById('checkoutStepQR').style.display='none';
+  document.getElementById('checkoutStep2').style.display='block';
+  document.getElementById('confirmTitle').textContent = 'Thanks — confirming your payment';
+  document.getElementById('confirmText').textContent = `We've opened WhatsApp for order ${window.__qrOrderId} (${qrCurrentAmount} BHD). Send your BenefitPay screenshot there and we'll confirm your order shortly.`;
+  document.getElementById('confirmWaBtn').style.display = 'none';
+}
+function copyQrAmount(){
+  navigator.clipboard?.writeText(qrCurrentAmount).then(() => {
+    const btn = document.querySelector('.copy-amt');
+    if(!btn) return;
+    const old = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = old, 1500);
+  }).catch(() => {});
+}
+
 
 const SAMPLE_PRODUCTS = [
   { id:'p1', name:'Wireless Earbuds Pro', price:18.500, compareAtPrice:24.900, category:'Audio', stock:14, featured:true, bestseller:true,
