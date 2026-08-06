@@ -1,39 +1,62 @@
 <svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" font-family="'Sora','Inter',sans-serif">
   <defs>
     <linearGradient id="bgO" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FF8B8B"/>
-      <stop offset="100%" stop-color="#FFADAD"/>
+      <stop offset="0%" stop-color="#FF9B9B"/>
+      <stop offset="55%" stop-color="#FFADAD"/>
+      <stop offset="100%" stop-color="#FFC2C2"/>
     </linearGradient>
-    <radialGradient id="glowO" cx="85%" cy="25%" r="70%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/>
+    <radialGradient id="glowO" cx="82%" cy="18%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.40"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="circleO" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF3F3"/>
+    </linearGradient>
+    <linearGradient id="goldO" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FBD376"/>
+      <stop offset="100%" stop-color="#E8A93A"/>
+    </linearGradient>
+    <filter id="cardShadowO" x="-10%" y="-10%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#B34D4D" flood-opacity="0.28"/>
+    </filter>
+    <filter id="btnShadowO" x="-40%" y="-60%" width="180%" height="260%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#7A2E2E" flood-opacity="0.22"/>
+    </filter>
+    <clipPath id="clipO"><rect width="1200" height="300" rx="26"/></clipPath>
   </defs>
-  <rect width="1200" height="300" rx="24" fill="url(#bgO)"/>
-  <rect width="1200" height="300" rx="24" fill="url(#glowO)"/>
-  <circle cx="1080" cy="60" r="120" fill="#FFFFFF" opacity="0.08"/>
-  <circle cx="1150" cy="250" r="90" fill="#FFFFFF" opacity="0.08"/>
-  <circle cx="80" cy="240" r="70" fill="#FFFFFF" opacity="0.10"/>
 
-  <!-- Trophy / trust icon badge -->
-  <g transform="translate(90,150)">
-    <circle r="72" fill="#FFFFFF"/>
-    <g transform="translate(-22,-30)">
-      <path d="M2 4h40v6c0 12-9 20-20 20S2 22 2 10z" fill="#F5B942"/>
-      <rect x="16" y="30" width="12" height="10" fill="#F5B942"/>
-      <rect x="8" y="40" width="28" height="7" rx="2" fill="#C98A1F"/>
-      <path d="M2 6H-8v4c0 8 5 13 10 14z" fill="#F5B942"/>
-      <path d="M42 6h10v4c0 8-5 13-10 14z" fill="#F5B942"/>
-      <path d="M22 12l2.6 5.3 5.8.85-4.2 4.1 1 5.75-5.2-2.75-5.2 2.75 1-5.75-4.2-4.1 5.8-.85z" fill="#FFF3D6"/>
+  <g clip-path="url(#clipO)">
+    <rect width="1200" height="300" fill="url(#bgO)"/>
+    <rect width="1200" height="300" fill="url(#glowO)"/>
+    <circle cx="1050" cy="40" r="130" fill="#FFFFFF" opacity="0.07"/>
+    <circle cx="1160" cy="260" r="100" fill="#FFFFFF" opacity="0.08"/>
+    <circle cx="40" cy="270" r="80" fill="#FFFFFF" opacity="0.08"/>
+    <line x1="0" y1="0" x2="1200" y2="300" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="240"/>
+    <rect x="1.5" y="1.5" width="1197" height="297" rx="24.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="1.5"/>
+  </g>
+
+  <g filter="url(#cardShadowO)">
+    <ellipse cx="112" cy="214" rx="52" ry="11" fill="#7A2E2E" opacity="0.16"/>
+    <circle cx="112" cy="150" r="66" fill="url(#circleO)" stroke="#FFFFFF" stroke-width="2"/>
+    <g transform="translate(112,150)">
+      <path d="M-16 -20h32v14c0 10-7.2 17-16 17s-16-7-16-17z" fill="url(#goldO)"/>
+      <rect x="-6" y="10" width="12" height="10" fill="url(#goldO)"/>
+      <rect x="-13" y="19" width="26" height="7" rx="2.5" fill="#C98A1F"/>
+      <path d="M-16 -18h-9v4c0 7 4.4 11.6 9 12.6z" fill="none" stroke="url(#goldO)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M16 -18h9v4c0 7-4.4 11.6-9 12.6z" fill="none" stroke="url(#goldO)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M0 -12l2.1 4.3 4.7.68-3.4 3.32.8 4.65L0 -1.3l-4.2 2.25.8-4.65-3.4-3.32 4.7-.68z" fill="#FFF3D6"/>
     </g>
   </g>
 
-  <text x="205" y="118" font-size="40" font-weight="800" fill="#5A2323">250+ Orders Delivered</text>
-  <text x="205" y="162" font-size="24" font-weight="500" fill="#7A3A3A">Trusted by happy customers</text>
-  <text x="205" y="196" font-size="24" font-weight="500" fill="#7A3A3A">all across Bahrain</text>
+  <text x="222" y="92" font-size="14" font-weight="700" fill="#7A2E2E" letter-spacing="2.4" opacity="0.75">COMMUNITY TRUST</text>
+  <text x="222" y="136" font-size="38" font-weight="800" fill="#3F1414" letter-spacing="-0.3">250+ Orders Delivered</text>
+  <text x="222" y="172" font-size="21" font-weight="500" fill="#6E3232">Trusted by happy customers,</text>
+  <text x="222" y="199" font-size="21" font-weight="500" fill="#6E3232">order after order, all across Bahrain.</text>
 
-  <g transform="translate(970,150)">
-    <rect x="-100" y="-32" width="200" height="64" rx="32" fill="#FFFFFF"/>
-    <text x="0" y="8" font-size="21" font-weight="800" fill="#8A3B3B" text-anchor="middle">⭐ Rated by Buyers</text>
+  <g filter="url(#btnShadowO)" transform="translate(1015,150)">
+    <rect x="-108" y="-30" width="216" height="60" rx="30" fill="#FFFFFF"/>
+    <path d="M-80 -2l2.1 4.3 4.7.68-3.4 3.32.8 4.65-4.2-2.25-4.2 2.25.8-4.65-3.4-3.32 4.7-.68z" fill="#E8A93A"/>
+    <text x="-57" y="6" font-size="20" font-weight="800" fill="#7A2E2E">Rated by Buyers</text>
   </g>
 </svg>
