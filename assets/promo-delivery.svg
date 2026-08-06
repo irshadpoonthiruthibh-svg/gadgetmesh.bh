@@ -1,0 +1,40 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" font-family="'Sora','Inter',sans-serif">
+  <defs>
+    <linearGradient id="bgD" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFC2C2"/>
+      <stop offset="100%" stop-color="#FFADAD"/>
+    </linearGradient>
+    <radialGradient id="glowD" cx="85%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="300" rx="24" fill="url(#bgD)"/>
+  <rect width="1200" height="300" rx="24" fill="url(#glowD)"/>
+  <circle cx="1080" cy="60" r="120" fill="#FFFFFF" opacity="0.08"/>
+  <circle cx="1150" cy="250" r="90" fill="#FFFFFF" opacity="0.08"/>
+  <circle cx="80" cy="240" r="70" fill="#FFFFFF" opacity="0.10"/>
+
+  <!-- Delivery truck icon badge -->
+  <g transform="translate(90,150)">
+    <circle r="72" fill="#FFFFFF"/>
+    <g transform="translate(-40,-26)">
+      <rect x="0" y="6" width="46" height="30" rx="4" fill="#8A3B3B"/>
+      <path d="M46 16h16l12 14v6h-28z" fill="#8A3B3B"/>
+      <rect x="49" y="19" width="12" height="10" rx="1.5" fill="#FFC2C2"/>
+      <circle cx="16" cy="40" r="8" fill="#1C1C1E"/>
+      <circle cx="16" cy="40" r="3.4" fill="#FFFFFF"/>
+      <circle cx="60" cy="40" r="8" fill="#1C1C1E"/>
+      <circle cx="60" cy="40" r="3.4" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <text x="205" y="118" font-size="40" font-weight="800" fill="#5A2323">Free &amp; One-Day Delivery</text>
+  <text x="205" y="162" font-size="24" font-weight="500" fill="#7A3A3A">Order today, get it delivered</text>
+  <text x="205" y="196" font-size="24" font-weight="500" fill="#7A3A3A">tomorrow — anywhere in Bahrain</text>
+
+  <g transform="translate(940,150)">
+    <rect x="-110" y="-32" width="220" height="64" rx="32" fill="#FFFFFF"/>
+    <text x="0" y="8" font-size="21" font-weight="800" fill="#8A3B3B" text-anchor="middle">🚚 All Over Bahrain</text>
+  </g>
+</svg>
