@@ -826,8 +826,16 @@ function renderOrderRows(){
           <input type="text" id="trackUrl_${o.id}" placeholder="Tracking link" value="${o.trackingUrl||''}" style="width:100%;margin-bottom:5px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
           <button class="ghost small" onclick="saveTracking('${o.id}')">Save</button>
         </td>
-        <td>
+        <td style="min-width:150px;">
           <button class="ghost small" onclick="toggleDetails('od${idx}')">Details</button>
+          <select id="sampleType_${o.id}" style="width:100%;margin-top:4px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+            <option value="confirmation">Sample: Order confirmation</option>
+            <option value="confirmed">Sample: Order confirmed</option>
+            <option value="shipped">Sample: Order shipped</option>
+            <option value="delivered">Sample: Order delivered</option>
+            <option value="paymentReceived">Sample: Payment received</option>
+          </select>
+          <button class="ghost small" style="margin-top:4px;" onclick="sendSampleEmail('${o.id}')">Send sample mail</button>
           <button class="ghost small" style="color:#B34141;border-color:#F2C9C9;margin-top:4px;" onclick="deleteOrder('${o.id}')">Delete</button>
         </td>
       </tr>
@@ -840,6 +848,19 @@ async function deleteOrder(id){
   ORDERS = ORDERS.filter(o => o.id !== id);
   renderOrderRows();
   renderDashboard();
+}
+// Sends a real, exact copy of one of the customer order emails (for this
+// order's real data) to the store's admin inbox instead of the customer,
+// so you can preview exactly what a customer receives at each status.
+async function sendSampleEmail(id){
+  const emailType = document.getElementById('sampleType_'+id).value;
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'sendSampleOrderEmail', password: ADMIN_PASSWORD, id, emailType }) });
+  const data = await res.json();
+  if(data.ok){
+    alert('Sample email sent to gadgetmeshbh@gmail.com — check that inbox.');
+  } else {
+    alert(data.error || 'Failed to send sample email.');
+  }
 }
 async function saveTracking(id){
   const trackingNumber = document.getElementById('trackNum_'+id).value.trim();
