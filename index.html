@@ -722,7 +722,7 @@
       <span class="eyebrow"><span class="dot"></span> Loved locally</span>
       <h2>What Bahrain is saying</h2>
     </div>
-    <div class="testi-grid reveal-stagger">
+    <div class="testi-grid reveal-stagger" id="testiGrid">
       <div class="testi"><div class="stars">★★★★★</div><p>Ordered earbuds on a Tuesday, had them by Thursday. Paid with BenefitPay through WhatsApp — smooth process.</p><div class="who">— Fatima, Manama</div></div>
       <div class="testi"><div class="stars">★★★★★</div><p>Good prices in BHD and no surprise charges at checkout. Cash on delivery made it an easy first order.</p><div class="who">— Ahmed, Riffa</div></div>
       <div class="testi"><div class="stars">★★★★★</div><p>The power bank I bought has genuinely replaced three chargers in my bag. Will be back for more.</p><div class="who">— Noor, Muharraq</div></div>
@@ -1948,6 +1948,43 @@ function escapeHtmlClient(s){
   d.textContent = s || '';
   return d.innerHTML;
 }
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+/* Homepage "What Bahrain is saying" — pulled live from real product
+   reviews. Only 5-star reviews are eligible; on every page load a fresh
+   random set of up to 3 is chosen from whatever 5-star reviews exist
+   across all products, so the section changes on reload. If a store has
+   no 5-star reviews yet, the default handwritten testimonials already
+   in the HTML are left in place instead of showing an empty section. */
+async function loadHomeTestimonials(){
+  const grid = document.getElementById('testiGrid');
+  if(!grid || !PRODUCTS.length) return;
+  try{
+    const targets = PRODUCTS.slice(0, 40);
+    const results = await Promise.all(targets.map(p =>
+      fetch(`${CONFIG.API_URL}?action=listReviews&productId=${encodeURIComponent(p.id)}&_=${Date.now()}`)
+        .then(r => r.json())
+        .then(d => (d.reviews || []))
+        .catch(() => [])
+    ));
+    const fiveStar = results.flat().filter(r => Number(r.rating) === 5 && (r.text || '').trim());
+    if(!fiveStar.length) return;
+    const picked = shuffleArray(fiveStar).slice(0, 3);
+    grid.innerHTML = picked.map(r => `
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>${escapeHtmlClient(r.text)}</p>
+        <div class="who">— ${escapeHtmlClient(r.customerName || 'Verified customer')}</div>
+      </div>
+    `).join('');
+  }catch(err){ /* keep the default testimonials already in the HTML */ }
+}
 async function submitReview(){
   if(!PDP_PRODUCT) return;
   const name = document.getElementById('reviewName').value.trim() || (CUSTOMER ? CUSTOMER.name : 'Anonymous');
@@ -2388,7 +2425,7 @@ async function loadSettings(){
 }
 
 renderCart();
-loadProducts();
+loadProducts().then(loadHomeTestimonials);
 loadSettings();
 startPdpPromoRotation();
 observeReveal();
