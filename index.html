@@ -451,6 +451,14 @@
   .testi .stars{color:var(--blush-deep);letter-spacing:2px;margin-bottom:12px;font-size:14px;}
   .testi p{font-size:14px;color:var(--ink);line-height:1.6;margin:0 0 16px;}
   .testi .who{font-size:13px;font-weight:700;color:var(--ink-soft);}
+  .testi-skel{background:var(--paper-soft);border-radius:var(--radius);padding:26px;}
+  .testi-skel .sk-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--line) 25%,#f3e9e9 50%,var(--line) 75%);background-size:200% 100%;animation:skelWave 1.4s ease-in-out infinite;}
+  .testi-skel .sk-stars{width:90px;height:14px;margin-bottom:14px;}
+  .testi-skel .sk-line + .sk-line{margin-top:8px;}
+  .testi-skel .sk-text1{width:100%;}
+  .testi-skel .sk-text2{width:88%;}
+  .testi-skel .sk-who{width:40%;margin-top:16px;}
+  @keyframes skelWave{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 
   .newsletter{
     background:linear-gradient(135deg, var(--blush), var(--blush-deep)); border-radius:24px; padding:52px 40px; text-align:center; margin:0 24px;
@@ -723,9 +731,9 @@
       <h2>What Bahrain is saying</h2>
     </div>
     <div class="testi-grid reveal-stagger" id="testiGrid">
-      <div class="testi"><div class="stars">★★★★★</div><p>Ordered earbuds on a Tuesday, had them by Thursday. Paid with BenefitPay through WhatsApp — smooth process.</p><div class="who">— Fatima, Manama</div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>Good prices in BHD and no surprise charges at checkout. Cash on delivery made it an easy first order.</p><div class="who">— Ahmed, Riffa</div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>The power bank I bought has genuinely replaced three chargers in my bag. Will be back for more.</p><div class="who">— Noor, Muharraq</div></div>
+      <div class="testi-skel"><div class="sk-line sk-stars"></div><div class="sk-line sk-text1"></div><div class="sk-line sk-text2"></div><div class="sk-line sk-who"></div></div>
+      <div class="testi-skel"><div class="sk-line sk-stars"></div><div class="sk-line sk-text1"></div><div class="sk-line sk-text2"></div><div class="sk-line sk-who"></div></div>
+      <div class="testi-skel"><div class="sk-line sk-stars"></div><div class="sk-line sk-text1"></div><div class="sk-line sk-text2"></div><div class="sk-line sk-who"></div></div>
     </div>
   </div>
 </section>
@@ -1959,12 +1967,31 @@ function shuffleArray(arr){
 /* Homepage "What Bahrain is saying" — pulled live from real product
    reviews. Only 5-star reviews are eligible; on every page load a fresh
    random set of up to 3 is chosen from whatever 5-star reviews exist
-   across all products, so the section changes on reload. If a store has
-   no 5-star reviews yet, the default handwritten testimonials already
-   in the HTML are left in place instead of showing an empty section. */
+   across all products, so the section changes on reload. The grid shows
+   a loading skeleton (in the HTML) until this resolves — the old sample
+   testimonials are never shown, not even briefly; they're kept here only
+   as a last-resort fallback for a brand-new store with no 5-star reviews
+   yet, and only appear once loading has actually finished. */
+const DEFAULT_TESTIMONIALS = [
+  { text: "Ordered earbuds on a Tuesday, had them by Thursday. Paid with BenefitPay through WhatsApp, smooth process.", customerName: "Fatima" },
+  { text: "Good prices in BHD and no surprise charges at checkout. Cash on delivery made it an easy first order.", customerName: "Ahmed" },
+  { text: "The power bank I bought has genuinely replaced three chargers in my bag. Will be back for more.", customerName: "Noor" }
+];
+function renderTestimonials(list){
+  const grid = document.getElementById('testiGrid');
+  if(!grid) return;
+  grid.innerHTML = list.map(r => `
+    <div class="testi">
+      <div class="stars">★★★★★</div>
+      <p>${escapeHtmlClient(r.text)}</p>
+      <div class="who">— ${escapeHtmlClient(r.customerName || 'Verified customer')}</div>
+    </div>
+  `).join('');
+}
 async function loadHomeTestimonials(){
   const grid = document.getElementById('testiGrid');
-  if(!grid || !PRODUCTS.length) return;
+  if(!grid) return;
+  if(!PRODUCTS.length){ renderTestimonials(DEFAULT_TESTIMONIALS); return; }
   try{
     const targets = PRODUCTS.slice(0, 40);
     const results = await Promise.all(targets.map(p =>
@@ -1974,16 +2001,10 @@ async function loadHomeTestimonials(){
         .catch(() => [])
     ));
     const fiveStar = results.flat().filter(r => Number(r.rating) === 5 && (r.text || '').trim());
-    if(!fiveStar.length) return;
-    const picked = shuffleArray(fiveStar).slice(0, 3);
-    grid.innerHTML = picked.map(r => `
-      <div class="testi">
-        <div class="stars">★★★★★</div>
-        <p>${escapeHtmlClient(r.text)}</p>
-        <div class="who">— ${escapeHtmlClient(r.customerName || 'Verified customer')}</div>
-      </div>
-    `).join('');
-  }catch(err){ /* keep the default testimonials already in the HTML */ }
+    renderTestimonials(fiveStar.length ? shuffleArray(fiveStar).slice(0, 3) : DEFAULT_TESTIMONIALS);
+  }catch(err){
+    renderTestimonials(DEFAULT_TESTIMONIALS);
+  }
 }
 async function submitReview(){
   if(!PDP_PRODUCT) return;
