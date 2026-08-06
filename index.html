@@ -303,7 +303,7 @@
     background:#fff;border-radius:24px;box-shadow:var(--shadow-md);padding:28px;position:relative;
     border:1px solid var(--line);
   }
-  .hero-card img{border-radius:16px;width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--paper-soft);}
+  .hero-card img{border-radius:16px;width:100%;height:auto;display:block;background:var(--paper-soft);}
   .float-tag{
     position:absolute;background:#fff;border-radius:14px;padding:12px 16px;box-shadow:var(--shadow-md);
     font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--line);
@@ -426,6 +426,21 @@
   .pdp-trust div{display:flex;align-items:center;gap:9px;}
   .pdp-related{margin-top:70px;}
   .pdp-related h3{font-size:20px;margin-bottom:18px;}
+  .pdp-promo{margin-top:56px;}
+  .pdp-promo-strip{
+    position:relative;width:100%;aspect-ratio:1200/300;border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow-md);background:var(--blush);
+  }
+  .pdp-promo-strip img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;
+    transition:opacity .7s var(--ease);
+  }
+  .pdp-promo-strip img.active{opacity:1;}
+  .pdp-promo-dots{display:flex;justify-content:center;gap:8px;margin-top:14px;}
+  .pdp-promo-dots span{
+    width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .3s,transform .3s;
+  }
+  .pdp-promo-dots span.active{background:var(--blush-deep);transform:scale(1.25);}
   @media (max-width:840px){
     .pdp-grid{grid-template-columns:1fr;gap:28px;}
     .pdp-body{padding:24px 18px 60px;}
@@ -637,7 +652,7 @@
     <div class="hero-visual reveal">
       <div class="hero-blob"></div>
       <div class="hero-card" id="heroCard">
-        <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1785932012/ChatGPT_Image_Aug_5_2026_03_11_49_PM_acheov.png" alt="Featured gadget">
+        <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
         <div class="float-tag t1" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
         <div class="float-tag t2" id="heroBadge2">🚚 One day delivery</div>
       </div>
@@ -978,6 +993,18 @@
     <div class="pdp-related">
       <h3>You might also like</h3>
       <div class="rail-scroll" id="pdpRelated"></div>
+    </div>
+    <div class="pdp-promo">
+      <div class="pdp-promo-strip" id="pdpPromoStrip">
+        <img src="assets/promo-whatsapp.svg" alt="Chat with us on WhatsApp" class="active">
+        <img src="assets/promo-delivery.svg" alt="Free and one day delivery all over Bahrain">
+        <img src="assets/promo-orders.svg" alt="More than 250 orders delivered">
+      </div>
+      <div class="pdp-promo-dots" id="pdpPromoDots">
+        <span class="active" onclick="pdpPromoGoTo(0)"></span>
+        <span onclick="pdpPromoGoTo(1)"></span>
+        <span onclick="pdpPromoGoTo(2)"></span>
+      </div>
     </div>
     <div class="reviews-section">
       <div class="reviews-head">
@@ -1784,6 +1811,26 @@ function pickPdpColor(c){
   document.querySelectorAll('#colorPills .color-pill').forEach(el => el.classList.toggle('selected', el.dataset.color === c));
 }
 
+let PDP_PROMO_INDEX = 0;
+let PDP_PROMO_TIMER = null;
+function pdpPromoGoTo(i){
+  const imgs = document.querySelectorAll('#pdpPromoStrip img');
+  const dots = document.querySelectorAll('#pdpPromoDots span');
+  if(!imgs.length) return;
+  PDP_PROMO_INDEX = i;
+  imgs.forEach((img,idx) => img.classList.toggle('active', idx===i));
+  dots.forEach((d,idx) => d.classList.toggle('active', idx===i));
+}
+function pdpPromoNext(){
+  const imgs = document.querySelectorAll('#pdpPromoStrip img');
+  if(!imgs.length) return;
+  pdpPromoGoTo((PDP_PROMO_INDEX + 1) % imgs.length);
+}
+function startPdpPromoRotation(){
+  if(PDP_PROMO_TIMER) clearInterval(PDP_PROMO_TIMER);
+  PDP_PROMO_TIMER = setInterval(pdpPromoNext, 3500);
+}
+
 function setPdpImage(i){
   if(!PDP_PRODUCT) return;
   document.getElementById('pdpMainImg').src = PDP_PRODUCT.images[i] || PDP_PRODUCT.images[0];
@@ -2343,6 +2390,7 @@ async function loadSettings(){
 renderCart();
 loadProducts();
 loadSettings();
+startPdpPromoRotation();
 observeReveal();
 </script>
 </body>
