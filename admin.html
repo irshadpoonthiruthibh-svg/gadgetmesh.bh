@@ -205,6 +205,7 @@
       <div class="sb-link" data-tab="products" onclick="switchTab('products')"><span class="ic">🛍️</span> Products</div>
       <div class="sb-link" data-tab="homepage" onclick="switchTab('homepage')"><span class="ic">🏠</span> Homepage</div>
       <div class="sb-link" data-tab="orders" onclick="switchTab('orders')"><span class="ic">📦</span> Orders</div>
+      <div class="sb-link" data-tab="returns" onclick="switchTab('returns')"><span class="ic">↩️</span> Returns</div>
       <div class="sb-link" data-tab="customers" onclick="switchTab('customers')"><span class="ic">👤</span> Customers</div>
       <div class="sb-link" data-tab="marketing" onclick="switchTab('marketing')"><span class="ic">📣</span> Marketing</div>
     </div>
@@ -381,6 +382,46 @@
       </div>
     </div>
 
+    <!-- ================= RETURNS & REPLACEMENTS ================= -->
+    <div class="panel" id="panel-returns">
+      <div class="topbar">
+        <div><h1>Returns &amp; Replacements</h1><p>Start a return or replacement from a delivered order, then track it through to refund or redelivery. Every status change emails the customer.</p></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 12px;font-size:15px;">Start a new request</h3>
+        <div class="toolbar" style="flex-wrap:wrap;">
+          <select id="retOrderSelect" style="min-width:260px;flex:1;" onchange="renderRetOrderPreview()">
+            <option value="">Choose a delivered order…</option>
+          </select>
+          <select id="retType" style="width:160px;">
+            <option value="return">Return</option>
+            <option value="replacement">Replacement</option>
+          </select>
+        </div>
+        <div id="retOrderPreview" class="muted" style="margin:8px 0 12px;line-height:1.6;"></div>
+        <label style="display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;">Reason for return / replacement</label>
+        <textarea id="retReason" placeholder="e.g. &quot;Wrong size delivered&quot;, &quot;Item arrived damaged&quot;, &quot;Not as described&quot;… — this is shown to the customer in their email." style="width:100%;min-height:60px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:10px;resize:vertical;"></textarea>
+        <button class="primary" onclick="createReturnRequest()">Create request &amp; notify customer</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 12px;font-size:15px;">Returns</h3>
+        <table>
+          <thead><tr><th>Return</th><th>Customer</th><th>Items</th><th>Reason</th><th>Status</th><th>Refund</th><th></th></tr></thead>
+          <tbody id="returnRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 12px;font-size:15px;">Replacements</h3>
+        <table>
+          <thead><tr><th>Replacement</th><th>Customer</th><th>Items</th><th>Reason</th><th>Status</th><th>Tracking</th><th></th></tr></thead>
+          <tbody id="replacementRows"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ================= CUSTOMERS ================= -->
     <div class="panel" id="panel-customers">
       <div class="topbar">
@@ -486,6 +527,7 @@ function switchTab(tab){
 
 async function loadAll(){
   await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings(), loadSubscribers(), loadCampaigns()]);
+  await loadReturns();
   renderDashboard();
 }
 
@@ -910,6 +952,141 @@ async function savePaymentMethod(id){
   const o = ORDERS.find(o => o.id === id);
   if(o) o.paymentMethod = val;
   renderOrderRows();
+}
+
+/* ---------------- returns & replacements ---------------- */
+let RETURNS = [];
+const RETURN_STATUSES = ['Return Scheduled','Picked Up','On the Way to Store','Reached Store','Quality Inspection','Quality Inspection Passed','Refund Issued'];
+const REPLACEMENT_STATUSES = ['Replacement Scheduled','Shipped','Product Replaced with Delivery'];
+
+async function loadReturns(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listReturnsAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  RETURNS = data.returns || [];
+  renderRetOrderOptions();
+  renderReturnRows();
+}
+
+// Only delivered orders can be turned into a return/replacement request.
+function renderRetOrderOptions(){
+  const sel = document.getElementById('retOrderSelect');
+  if(!sel) return;
+  const current = sel.value;
+  const delivered = ORDERS.filter(o => o.orderStatus === 'delivered');
+  sel.innerHTML = '<option value="">Choose a delivered order…</option>' +
+    delivered.map(o => `<option value="${o.id}">${o.id} — ${o.customerName||'—'} (${Number(o.total).toFixed(3)} BHD)</option>`).join('');
+  sel.value = current;
+  renderRetOrderPreview();
+}
+
+function renderRetOrderPreview(){
+  const sel = document.getElementById('retOrderSelect');
+  const box = document.getElementById('retOrderPreview');
+  if(!sel || !box) return;
+  const id = sel.value;
+  if(!id){ box.innerHTML = ''; return; }
+  const o = ORDERS.find(o => o.id === id);
+  if(!o){ box.innerHTML = ''; return; }
+  const items = parseItems(o);
+  const itemsText = items.map(i => `${i.name} ×${i.qty}`).join(', ') || '—';
+  box.innerHTML = `<strong>${o.customerName||'—'}</strong> · ${o.phone||'—'}<br>Items: ${itemsText}<br>Total: ${Number(o.total).toFixed(3)} BHD`;
+}
+
+async function createReturnRequest(){
+  const orderId = document.getElementById('retOrderSelect').value;
+  const type = document.getElementById('retType').value;
+  const reason = document.getElementById('retReason').value.trim();
+  if(!orderId){ alert('Choose a delivered order first.'); return; }
+  if(!reason){ alert('Please add a reason — the customer will see this in their email.'); return; }
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'createReturnRequest', password: ADMIN_PASSWORD, orderId, type, reason }) });
+  const data = await res.json();
+  if(!data.ok){ alert(data.error || 'Failed to create request.'); return; }
+  alert(`${type === 'replacement' ? 'Replacement' : 'Return'} ${data.id} created — the customer has been emailed.`);
+  document.getElementById('retReason').value = '';
+  document.getElementById('retOrderSelect').value = '';
+  renderRetOrderPreview();
+  await loadReturns();
+}
+
+function returnItemsText(r){
+  try{ return JSON.parse(r.items||'[]').map(i => `${i.name} ×${i.qty}`).join(', ') || '—'; }catch(e){ return '—'; }
+}
+
+function renderReturnRows(){
+  const returns = RETURNS.filter(r => r.type !== 'replacement').slice().reverse();
+  const replacements = RETURNS.filter(r => r.type === 'replacement').slice().reverse();
+
+  document.getElementById('returnRows').innerHTML = returns.length ? returns.map(r => `
+    <tr>
+      <td><strong>${r.id}</strong><div class="muted">Order ${r.orderId}</div><div class="muted">${new Date(r.createdAt).toLocaleString()}</div></td>
+      <td>${r.customerName||'—'}<div class="muted">${r.phone||''}</div></td>
+      <td style="max-width:200px;">${returnItemsText(r)}</td>
+      <td style="max-width:180px;font-size:12px;color:var(--ink-soft);">${(r.reason||'—').toString().replace(/</g,'&lt;')}</td>
+      <td>
+        <select class="status" onchange="updateReturn('${r.id}','status',this.value)">
+          ${RETURN_STATUSES.map(s => `<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td style="min-width:130px;">
+        <input type="number" step="0.001" id="refundAmt_${r.id}" placeholder="Refund amount" value="${r.refundAmount||0}" style="width:100%;margin-bottom:4px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+        <button class="ghost small" onclick="saveRefundAmount('${r.id}')">Save</button>
+      </td>
+      <td><button class="ghost small" style="color:#B34141;border-color:#F2C9C9;" onclick="deleteReturn('${r.id}')">Delete</button></td>
+    </tr>
+  `).join('') : `<tr class="empty-row"><td colspan="6">No returns yet.</td></tr>`;
+
+  document.getElementById('replacementRows').innerHTML = replacements.length ? replacements.map(r => `
+    <tr>
+      <td><strong>${r.id}</strong><div class="muted">Order ${r.orderId}</div><div class="muted">${new Date(r.createdAt).toLocaleString()}</div></td>
+      <td>${r.customerName||'—'}<div class="muted">${r.phone||''}</div></td>
+      <td style="max-width:200px;">${returnItemsText(r)}</td>
+      <td style="max-width:180px;font-size:12px;color:var(--ink-soft);">${(r.reason||'—').toString().replace(/</g,'&lt;')}</td>
+      <td>
+        <select class="status" onchange="updateReturn('${r.id}','status',this.value)">
+          ${REPLACEMENT_STATUSES.map(s => `<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td style="min-width:170px;">
+        <input type="text" id="repTrackNum_${r.id}" placeholder="Tracking #" value="${r.trackingNumber||''}" style="width:100%;margin-bottom:4px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+        <input type="text" id="repTrackUrl_${r.id}" placeholder="Tracking link" value="${r.trackingUrl||''}" style="width:100%;margin-bottom:5px;padding:6px 8px;font-size:11.5px;border:1.5px solid var(--line);border-radius:7px;font-family:inherit;">
+        <button class="ghost small" onclick="saveReplacementTracking('${r.id}')">Save</button>
+      </td>
+      <td><button class="ghost small" style="color:#B34141;border-color:#F2C9C9;" onclick="deleteReturn('${r.id}')">Delete</button></td>
+    </tr>
+  `).join('') : `<tr class="empty-row"><td colspan="6">No replacements yet.</td></tr>`;
+}
+
+// Used for the status dropdown — a status change alone always fires the
+// matching customer email (handled server-side in updateReturnStatus_).
+async function updateReturn(id, field, value){
+  const payload = { action:'updateReturnStatus', password: ADMIN_PASSWORD, id };
+  payload[field] = value;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(payload) });
+  const r = RETURNS.find(r => r.id === id);
+  if(r) r[field] = value;
+}
+
+async function saveRefundAmount(id){
+  const val = Number(document.getElementById('refundAmt_'+id).value) || 0;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateReturnStatus', password: ADMIN_PASSWORD, id, refundAmount: val }) });
+  const r = RETURNS.find(r => r.id === id);
+  if(r) r.refundAmount = val;
+}
+
+async function saveReplacementTracking(id){
+  const trackingNumber = document.getElementById('repTrackNum_'+id).value.trim();
+  const trackingUrl = document.getElementById('repTrackUrl_'+id).value.trim();
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateReturnStatus', password: ADMIN_PASSWORD, id, trackingNumber, trackingUrl }) });
+  const r = RETURNS.find(r => r.id === id);
+  if(r){ r.trackingNumber = trackingNumber; r.trackingUrl = trackingUrl; }
+  alert('Tracking saved. If this replacement is currently "Shipped", the customer just got an email with these tracking details.');
+}
+
+async function deleteReturn(id){
+  if(!confirm(`Delete ${id}? This can't be undone.`)) return;
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deleteReturn', password: ADMIN_PASSWORD, id }) });
+  RETURNS = RETURNS.filter(r => r.id !== id);
+  renderReturnRows();
 }
 
 /* ---------------- dashboard ---------------- */

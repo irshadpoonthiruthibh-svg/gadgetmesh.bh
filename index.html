@@ -261,6 +261,14 @@
   .oc-status.delivered{background:#1E7A44;color:#fff;}
   .oc-track{margin-top:10px;font-size:12.5px;background:var(--paper-soft);border-radius:10px;padding:10px 12px;line-height:1.5;}
   .oc-track a{color:var(--blush-ink);font-weight:700;}
+  .oc-return{margin-top:10px;font-size:12.5px;background:#FFF6F6;border:1px solid #FBE2DE;border-radius:10px;padding:10px 12px;line-height:1.55;}
+  .oc-return + .oc-return{margin-top:8px;}
+  .oc-return-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .oc-return-id{font-weight:800;color:var(--ink);}
+  .oc-return-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:3px 9px;border-radius:20px;background:var(--blush);color:var(--ink);white-space:nowrap;}
+  .oc-return-status{font-weight:700;color:#8A3B3B;margin-top:4px;}
+  .oc-return-reason{color:var(--ink-soft);margin-top:2px;}
+  .oc-return-newid{margin-top:6px;padding-top:6px;border-top:1px dashed #F2C9C9;font-weight:700;}
   .oc-items{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
   .oc-total{font-weight:800;margin-top:8px;font-size:14px;}
 
@@ -1062,6 +1070,7 @@ let PRODUCTS = [];
 let CART = JSON.parse(localStorage.getItem('gm_cart') || '[]');
 let CUSTOMER = JSON.parse(localStorage.getItem('gm_customer') || 'null');
 let CUSTOMER_ORDERS = [];
+let CUSTOMER_RETURNS = [];
 async function loadCustomerOrdersForReviews(){
   if(!CUSTOMER) { CUSTOMER_ORDERS = []; return; }
   try{
@@ -1147,10 +1156,41 @@ async function loadMyOrders(){
     const orders = data.orders || [];
     CUSTOMER_ORDERS = orders;
     if(!orders.length){ wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No orders yet — once you place one, it will show up here.</p>'; return; }
+    // A return/replacement failure shouldn't block the order list itself from
+    // showing — just fall back to no return/replacement info on the cards.
+    try{
+      const retRes = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listReturnsForCustomer', email: CUSTOMER.email }) });
+      const retData = await retRes.json();
+      CUSTOMER_RETURNS = retData.returns || [];
+    }catch(err){ CUSTOMER_RETURNS = []; }
     wrap.innerHTML = orders.map(orderCardHtml).join('');
   }catch(err){
     wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">Could not load your orders right now. Please try again shortly.</p>';
   }
+}
+// One order can have more than one return/replacement request against it
+// (e.g. one item returned, another replaced) — each renders as its own card
+// inside the order, always reflecting whatever status the admin has set.
+function returnSectionHtml(o){
+  const recs = (CUSTOMER_RETURNS || []).filter(r => r.orderId === o.id);
+  if(!recs.length) return '';
+  return recs.map(r => {
+    const kind = r.type === 'replacement' ? 'Replacement' : 'Return';
+    const newNumberLine = (r.type === 'replacement' && r.status === 'Product Replaced with Delivery')
+      ? `<div class="oc-return-newid">Your replacement order number: ${escapeHtmlClient(r.id)}</div>`
+      : '';
+    return `
+      <div class="oc-return">
+        <div class="oc-return-head">
+          <span class="oc-return-id">${escapeHtmlClient(r.id)}</span>
+          <span class="oc-return-badge">${kind}</span>
+        </div>
+        <div class="oc-return-status">${escapeHtmlClient(r.status || '')}</div>
+        ${r.reason ? `<div class="oc-return-reason">Reason: ${escapeHtmlClient(r.reason)}</div>` : ''}
+        ${newNumberLine}
+      </div>
+    `;
+  }).join('');
 }
 function orderCardHtml(o){
   let items = [];
@@ -1160,6 +1200,7 @@ function orderCardHtml(o){
   const track = (status === 'shipped' || status === 'delivered') && o.trackingNumber
     ? `<div class="oc-track">📦 Tracking number: <strong>${o.trackingNumber}</strong>${o.trackingUrl ? ` — <a href="${o.trackingUrl}" target="_blank" rel="noopener">Track package →</a>` : ''}</div>`
     : '';
+  const returnBlock = status === 'delivered' ? returnSectionHtml(o) : '';
   const reviewSection = status === 'delivered' && items.length ? `
     <div class="order-review-section">
       <div class="order-review-title">Rate your purchase</div>
@@ -1188,6 +1229,7 @@ function orderCardHtml(o){
       <div class="oc-items">${itemsText || '—'}</div>
       <div class="oc-total">${Number(o.total).toFixed(3)} BHD</div>
       ${track}
+      ${returnBlock}
       ${reviewSection}
     </div>
   `;
