@@ -13,7 +13,7 @@
     "category": "Wellness",
     "stock": 10,
     "active": true,
-    "featured": false,
+    "featured": true,
     "bestseller": false,
     "colors": "Pink,",
     "images": [
@@ -43,7 +43,7 @@
     "category": "Lifestyle",
     "stock": 10,
     "active": true,
-    "featured": false,
+    "featured": true,
     "bestseller": false,
     "colors": "5pcs #Random Colors,",
     "images": [
