@@ -357,6 +357,30 @@
           </div>
         </div>
       </div>
+
+      <div class="grid2" style="margin-top:20px;">
+        <div class="card">
+          <h2>Announcement bar</h2>
+          <p class="muted" style="margin-bottom:12px;">A thin strip shown at the very top of every page, above the header — good for site-wide promos or notices.</p>
+          <div class="toggle-row">
+            <label class="toggle-pill" id="announcementActivePill"><input type="checkbox" id="announcementActive" onchange="syncPill('announcementActive','announcementActivePill')"><span class="ic">✅</span> Show this bar site-wide</label>
+          </div>
+          <div class="field full">
+            <label>Message <span class="opt">— keep it short so it fits on one line</span></label>
+            <input type="text" id="announcementText" placeholder="🎉 Free delivery all over Bahrain — every order, no minimum" oninput="updateAnnouncementPreview()">
+          </div>
+          <button class="primary" onclick="saveAnnouncementSettings()">Save announcement bar</button>
+          <span class="muted" id="announcementSaveMsg" style="margin-left:12px;"></span>
+        </div>
+        <div class="card">
+          <h2>Live preview</h2>
+          <p class="muted" style="margin-bottom:12px;">How the bar will look above the header.</p>
+          <div style="border:1.5px solid var(--line);border-radius:14px;overflow:hidden;">
+            <div id="announcementPreviewBar" style="background:#1C1C1E;color:#fff;text-align:center;font-size:12.5px;font-weight:700;padding:9px 16px;">🎉 Free delivery all over Bahrain — every order, no minimum</div>
+            <div style="padding:14px;background:var(--paper);color:var(--ink-soft);font-size:12.5px;">— rest of the site below —</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ================= ORDERS ================= -->
@@ -1144,6 +1168,10 @@ async function loadHeroSettings(){
     document.getElementById('heroBadge2').value = s.heroBadge2 || '';
     document.getElementById('heroProductId').value = s.heroProductId || '';
     updateHeroPreview();
+    document.getElementById('announcementActive').checked = s.announcementActive === true || s.announcementActive === 'TRUE';
+    syncPill('announcementActive','announcementActivePill');
+    document.getElementById('announcementText').value = s.announcementText || '';
+    updateAnnouncementPreview();
   }catch(err){ /* settings sheet may not exist yet — defaults are fine */ }
 }
 function updateHeroPreview(){
@@ -1170,6 +1198,22 @@ async function saveHeroSettings(){
   msg.textContent = 'Saving…';
   await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateSettings', password: ADMIN_PASSWORD, settings }) });
   msg.textContent = '✓ Saved — live on the homepage now.';
+  setTimeout(() => msg.textContent = '', 3000);
+}
+
+function updateAnnouncementPreview(){
+  const text = document.getElementById('announcementText').value.trim() || '🎉 Free delivery all over Bahrain — every order, no minimum';
+  document.getElementById('announcementPreviewBar').textContent = text;
+}
+async function saveAnnouncementSettings(){
+  const settings = {
+    announcementActive: document.getElementById('announcementActive').checked,
+    announcementText: document.getElementById('announcementText').value.trim()
+  };
+  const msg = document.getElementById('announcementSaveMsg');
+  msg.textContent = 'Saving…';
+  await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateSettings', password: ADMIN_PASSWORD, settings }) });
+  msg.textContent = '✓ Saved — live site-wide now.';
   setTimeout(() => msg.textContent = '', 3000);
 }
 

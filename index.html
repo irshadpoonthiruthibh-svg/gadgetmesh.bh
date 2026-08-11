@@ -294,38 +294,40 @@
     background:#fff;color:var(--ink);border:1px solid var(--line);padding:15px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;
   }
 
-  /* ---------- Full-width hero banner (single, edge-to-edge on all screens) ---------- */
+  /* ---------- Full-width hero banner: announcement strip, full image, tags below ---------- */
   .hero-banner{position:relative;width:100%;overflow:hidden;background:var(--paper-soft);}
-  .hero-full{position:relative;width:100%;aspect-ratio:2/1;max-height:560px;overflow:hidden;}
-  .hero-full img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;animation:heroKenBurns 12s ease-in-out infinite;}
-  @keyframes heroKenBurns{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
-  .hero-full::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.22),transparent 40%);pointer-events:none;}
-  .hero-eyebrow-wrap{position:absolute;top:18px;left:18px;z-index:3;}
+  .hero-announce{width:100%;background:linear-gradient(120deg,#FFF3F3,var(--paper-soft));padding:16px 20px;text-align:center;border-bottom:1px solid var(--line);}
+  .eyebrow-standalone{
+    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--blush-ink);
+  }
+  .eyebrow-standalone .dot{width:7px;height:7px;border-radius:50%;background:var(--blush);flex-shrink:0;}
+  .hero-full{position:relative;width:100%;background:var(--paper-soft);}
+  .hero-full img{width:100%;height:auto;max-height:560px;object-fit:contain;display:block;margin:0 auto;}
+  .hero-tags-row{width:100%;display:flex;justify-content:center;flex-wrap:wrap;gap:12px;padding:16px 16px 20px;}
   .hb-float-tag{
-    position:absolute;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:var(--shadow-md);
-    font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--line);white-space:nowrap;z-index:3;
+    background:#fff;border-radius:14px;padding:10px 16px;box-shadow:var(--shadow-sm);
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--line);white-space:nowrap;color:var(--ink);
   }
-  .hb-float-tag.t1{top:18px;right:18px;}
-  .hb-float-tag.t2{bottom:18px;left:18px;}
-  .hb-float-tag .pip{width:8px;height:8px;border-radius:50%;background:var(--blush);}
-  @media (prefers-reduced-motion: reduce){ .hero-full img{animation:none;} }
-  @media (max-width:900px){
-    .hero-full{max-height:420px;}
-  }
+  .hb-float-tag .pip{width:8px;height:8px;border-radius:50%;background:var(--blush);flex-shrink:0;}
   @media (max-width:640px){
-    .hero-full{max-height:300px;}
-    .hb-float-tag{font-size:10px;padding:6px 9px;gap:5px;}
-    .hb-float-tag.t1{top:10px;right:10px;}
-    .hb-float-tag.t2{bottom:10px;left:10px;}
-    .hero-eyebrow-wrap{top:10px;left:10px;max-width:56%;}
-    .hero-eyebrow-wrap .eyebrow{white-space:normal;margin-bottom:0;font-size:9.5px;padding:5px 9px;line-height:1.3;}
+    .hero-announce{padding:12px 16px;}
+    .eyebrow-standalone{font-size:10.5px;gap:6px;}
+    .hero-full img{max-height:300px;}
+    .hb-float-tag{font-size:11px;padding:8px 12px;}
+    .hero-tags-row{gap:8px;padding:12px 12px 16px;}
   }
   @media (max-width:400px){
-    .hero-full{max-height:220px;}
-    .hero-eyebrow-wrap{max-width:52%;}
-    .hero-eyebrow-wrap .eyebrow{font-size:8.5px;padding:4px 8px;}
-    .hb-float-tag{font-size:9px;padding:5px 8px;}
+    .eyebrow-standalone{font-size:9.5px;}
+    .hero-full img{max-height:220px;}
+    .hb-float-tag{font-size:10px;padding:7px 10px;}
   }
+
+  /* ---------- Announcement bar (site-wide, admin editable) ---------- */
+  .announce-bar{display:none;background:var(--ink);color:#fff;text-align:center;font-size:12.5px;font-weight:700;letter-spacing:0.01em;padding:9px 16px;}
+  .announce-bar.show{display:block;}
+  .announce-bar span{display:inline-flex;align-items:center;gap:8px;}
+  @media (max-width:640px){ .announce-bar{font-size:11px;padding:8px 14px;} }
 
   .trust-bar{background:var(--ink);color:#fff;padding:16px 0;overflow:hidden;}
   .trust-track{display:flex;gap:56px;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:0.02em;opacity:0.92;
@@ -376,8 +378,8 @@
   .price-tag{font-family:'Sora';font-weight:700;color:var(--ink);font-size:17px;}
   .price-tag small{font-size:11px;font-weight:600;color:var(--ink-soft);}
   .price-tag .was{display:block;color:var(--ink-soft);text-decoration:line-through;font-size:12px;font-weight:600;margin-bottom:1px;}
-  .free-delivery{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#1E7A44;margin-top:3px;}
-  .free-delivery .van{display:inline-block;font-size:13px;animation:vanNudge 1.8s ease-in-out infinite;}
+  .free-delivery{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:#1E7A44;margin-top:6px;white-space:nowrap;letter-spacing:-0.01em;}
+  .free-delivery .van{display:inline-block;font-size:12px;flex-shrink:0;animation:vanNudge 1.8s ease-in-out infinite;}
   @keyframes vanNudge{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(3px);} }
   .pdp-free-delivery{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#1E7A44;background:#EAF7EE;border:1px solid #D3EFDB;padding:8px 12px;border-radius:10px;margin:2px 0 20px;width:fit-content;}
   .pdp-free-delivery .van{display:inline-block;font-size:16px;animation:vanNudge 1.8s ease-in-out infinite;}
@@ -586,6 +588,8 @@
     .card .name{font-size:13px;}
     .price-tag{font-size:15px;}
     .add-btn{padding:8px 10px;font-size:12px;}
+    .free-delivery{font-size:9.5px;gap:3px;}
+    .free-delivery .van{font-size:11px;}
     .toolbar-inner{padding:12px;}
     .newsletter{margin:0 18px;padding:36px 20px;}
     .foot-grid{grid-template-columns:1fr;gap:26px;}
@@ -599,6 +603,7 @@
   @media (max-width:380px){
     .cat-grid{grid-template-columns:1fr 1fr;}
     .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+    .free-delivery{font-size:8.5px;}
   }
 </style>
 </head>
@@ -618,6 +623,7 @@
     <div class="intro-sub">Complete solution for Gadgets</div>
   </div>
 </div>
+<div class="announce-bar" id="announceBar"><span id="announceBarText"></span></div>
 <header id="siteHeader">
   <nav>
     <div class="logo">
@@ -660,13 +666,15 @@
 </header>
 
 <section class="hero-banner" id="heroBanner">
+  <div class="hero-announce reveal">
+    <div class="eyebrow-standalone" id="heroEyebrow"><span class="dot"></span> ORDER ONLINE, GET IT DELIVERED EASILY</div>
+  </div>
   <div class="hero-full reveal" id="heroCard">
     <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
-    <div class="hero-eyebrow-wrap">
-      <div class="eyebrow" id="heroEyebrow"><span class="dot"></span> ORDER ONLINE, GET IT DELIVERED EASILY</div>
-    </div>
-    <div class="hb-float-tag t1" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
-    <div class="hb-float-tag t2" id="heroBadge2">🚚 One day delivery</div>
+  </div>
+  <div class="hero-tags-row reveal">
+    <div class="hb-float-tag" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
+    <div class="hb-float-tag" id="heroBadge2">🚚 One day delivery</div>
   </div>
 </section>
 
@@ -1562,14 +1570,13 @@ function discountPct(p){
 }
 function priceHtml(p, size){
   size = size || 'card';
-  const fd = '<div class="free-delivery"><span class="van">🚚</span> Free Delivery in Bahrain</div>';
   if(!p.compareAtPrice) return size==='pdp'
     ? `${p.price.toFixed(3)} <small>BHD</small>`
-    : `<div class="price-tag">${p.price.toFixed(3)} <small>BHD</small>${fd}</div>`;
+    : `<div class="price-tag">${p.price.toFixed(3)} <small>BHD</small></div>`;
   if(size === 'pdp'){
     return `<span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small><span class="save-tag">Save ${discountPct(p)}%</span>`;
   }
-  return `<div class="price-tag"><span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small>${fd}</div>`;
+  return `<div class="price-tag"><span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small></div>`;
 }
 
 async function loadProducts(){
@@ -1686,6 +1693,7 @@ function productCardHtml(p){
           ${priceHtml(p)}
           <button class="add-btn" onclick="event.stopPropagation();popButton(this);addToCart('${p.id}',1,event)">Add</button>
         </div>
+        <div class="free-delivery"><span class="van">🚚</span> Free Delivery in Bahrain</div>
       </div>
     </div>
   `;
@@ -2463,19 +2471,30 @@ function applyHeroSettings(settings){
     if(card){ card.style.cursor = 'pointer'; card.onclick = () => openProduct(settings.heroProductId); }
   }
 }
+function applyAnnouncementSettings(settings){
+  const bar = document.getElementById('announceBar');
+  if(!bar || !settings) return;
+  const active = settings.announcementActive === true || settings.announcementActive === 'TRUE';
+  if(active && settings.announcementText){
+    document.getElementById('announceBarText').textContent = settings.announcementText;
+    bar.classList.add('show');
+  }else{
+    bar.classList.remove('show');
+  }
+}
 async function loadSettings(){
   try{
     const res = await fetch(`settings.json?v=${Date.now()}`);
     if(!res.ok) throw new Error('no static file yet');
     const data = await res.json();
-    if(data.ok) { applyHeroSettings(data.settings); return; }
+    if(data.ok) { applyHeroSettings(data.settings); applyAnnouncementSettings(data.settings); return; }
     throw new Error('static settings not ready');
   }catch(err){
     try{
       const res2 = await fetch(`${CONFIG.API_URL}?action=getSettings`);
       const data2 = await res2.json();
-      if(data2.ok) applyHeroSettings(data2.settings);
-    }catch(err2){ /* keep default hero if backend isn't connected yet */ }
+      if(data2.ok) { applyHeroSettings(data2.settings); applyAnnouncementSettings(data2.settings); }
+    }catch(err2){ /* keep defaults if backend isn't connected yet */ }
   }
 }
 
