@@ -273,30 +273,17 @@
   .oc-total{font-weight:800;margin-top:8px;font-size:14px;}
 
   /* ---------- extra motion touches ---------- */
-  @keyframes floatBob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-  .hero-visual{animation:floatBob 5.5s ease-in-out infinite;}
-  .hero-blob{
-    position:absolute; width:320px; height:320px; border-radius:50%; z-index:0; top:-70px; right:-70px;
-    background:radial-gradient(circle at 30% 30%, var(--blush), transparent 70%); filter:blur(38px); opacity:0.55;
-    animation:blobPulse 8s ease-in-out infinite;
-  }
-  @keyframes blobPulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
   @keyframes pulseBadge{ 0%{transform:scale(1);} 45%{transform:scale(1.4);} 100%{transform:scale(1);} }
   .badge-count.pulse{animation:pulseBadge .45s var(--ease);}
   @media (prefers-reduced-motion: reduce){
-    .hero-visual, .hero-blob, .badge-count.pulse{animation:none!important;}
+    .badge-count.pulse{animation:none!important;}
   }
 
-  .hero{position:relative; padding:96px 24px 80px; overflow:hidden; background:var(--paper-soft);}
-  .hero-grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;position:relative;z-index:2;}
   .eyebrow{
     display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
     color:var(--blush-ink); background:#fff; padding:7px 14px; border-radius:20px; margin-bottom:22px; box-shadow:var(--shadow-sm);
   }
   .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--blush);}
-  .hero h1{font-size:clamp(36px,5vw,58px);line-height:1.06;margin:0 0 20px;font-weight:800;}
-  .hero h1 span{color:var(--blush-ink);}
-  .hero p{font-size:17px;color:var(--ink-soft);max-width:480px;margin:0 0 32px;line-height:1.6;}
   .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;}
   .btn-primary{
     background:var(--ink);color:#fff;border:none;padding:15px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;
@@ -306,19 +293,33 @@
   .btn-ghost{
     background:#fff;color:var(--ink);border:1px solid var(--line);padding:15px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;
   }
-  .hero-visual{position:relative;}
-  .hero-card{
-    background:#fff;border-radius:24px;box-shadow:var(--shadow-md);padding:10px;position:relative;
-    border:1px solid var(--line);
+
+  /* ---------- Full-width hero banner (single, edge-to-edge on all screens) ---------- */
+  .hero-banner{position:relative;width:100%;overflow:hidden;background:var(--paper-soft);}
+  .hero-full{position:relative;width:100%;aspect-ratio:21/8;max-height:520px;overflow:hidden;}
+  .hero-full img{width:100%;height:100%;object-fit:cover;display:block;animation:heroKenBurns 12s ease-in-out infinite;}
+  @keyframes heroKenBurns{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.045);} }
+  .hero-full::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.28),transparent 45%);pointer-events:none;}
+  .hero-eyebrow-wrap{position:absolute;top:18px;left:18px;z-index:3;}
+  .hb-float-tag{
+    position:absolute;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:var(--shadow-md);
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--line);white-space:nowrap;z-index:3;
   }
-  .hero-card img{border-radius:16px;width:100%;height:auto;display:block;background:var(--paper-soft);}
-  .float-tag{
-    position:absolute;background:#fff;border-radius:14px;padding:12px 16px;box-shadow:var(--shadow-md);
-    font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+  .hb-float-tag.t1{top:18px;right:18px;}
+  .hb-float-tag.t2{bottom:18px;left:18px;}
+  .hb-float-tag .pip{width:8px;height:8px;border-radius:50%;background:var(--blush);}
+  @media (prefers-reduced-motion: reduce){ .hero-full img{animation:none;} }
+  @media (max-width:900px){
+    .hero-full{aspect-ratio:16/11;max-height:420px;}
   }
-  .float-tag.t1{top:-16px;right:16px;}
-  .float-tag.t2{bottom:-16px;left:16px;}
-  .float-tag .pip{width:8px;height:8px;border-radius:50%;background:var(--blush);}
+  @media (max-width:640px){
+    .hero-full{aspect-ratio:4/3;max-height:340px;}
+    .hb-float-tag{font-size:11px;padding:8px 11px;}
+    .hb-float-tag.t1{top:12px;right:12px;}
+    .hb-float-tag.t2{bottom:12px;left:12px;}
+    .hero-eyebrow-wrap{top:12px;left:12px;max-width:calc(100% - 24px);}
+    .hero-eyebrow-wrap .eyebrow{white-space:normal;margin-bottom:0;font-size:10.5px;padding:6px 10px;}
+  }
 
   .trust-bar{background:var(--ink);color:#fff;padding:16px 0;overflow:hidden;}
   .trust-track{display:flex;gap:56px;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:0.02em;opacity:0.92;
@@ -369,6 +370,12 @@
   .price-tag{font-family:'Sora';font-weight:700;color:var(--ink);font-size:17px;}
   .price-tag small{font-size:11px;font-weight:600;color:var(--ink-soft);}
   .price-tag .was{display:block;color:var(--ink-soft);text-decoration:line-through;font-size:12px;font-weight:600;margin-bottom:1px;}
+  .free-delivery{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#1E7A44;margin-top:3px;}
+  .free-delivery .van{display:inline-block;font-size:13px;animation:vanNudge 1.8s ease-in-out infinite;}
+  @keyframes vanNudge{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(3px);} }
+  .pdp-free-delivery{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#1E7A44;background:#EAF7EE;border:1px solid #D3EFDB;padding:8px 12px;border-radius:10px;margin:2px 0 20px;width:fit-content;}
+  .pdp-free-delivery .van{display:inline-block;font-size:16px;animation:vanNudge 1.8s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){ .free-delivery .van, .pdp-free-delivery .van{animation:none!important;} }
   .card-badge.sale{background:var(--blush-deep);color:#fff;}
   .pdp-price .was{display:block;color:var(--ink-soft);text-decoration:line-through;font-size:16px;font-weight:600;margin-bottom:2px;}
   .pdp-price .save-tag{display:inline-block;background:#FDE7E7;color:var(--blush-ink);font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;vertical-align:middle;margin-left:10px;}
@@ -423,7 +430,7 @@
   .pdp-stock{font-size:13px;font-weight:700;margin-bottom:22px;}
   .pdp-stock.in{color:#1E7A44;}
   .pdp-stock.low{color:#B23B2E;}
-  .pdp-desc{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin-bottom:26px;}
+  .pdp-desc{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin-bottom:26px;white-space:pre-line;}
   .pdp-qty-row{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
   .qty-selector{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;}
   .qty-selector button{width:38px;height:42px;background:var(--paper-soft);border:none;font-size:17px;font-weight:700;cursor:pointer;}
@@ -646,33 +653,14 @@
   </div>
 </header>
 
-<section class="hero">
-  <div class="mesh-bg">
-    <svg width="600" height="600" style="top:-100px;right:-140px;" viewBox="0 0 200 200">
-      <g stroke="#FFADAD" stroke-width="0.6" fill="none">
-        <circle cx="40" cy="40" r="2" fill="#FFADAD"/><circle cx="100" cy="20" r="2" fill="#FFADAD"/>
-        <circle cx="160" cy="60" r="2" fill="#FFADAD"/><circle cx="70" cy="100" r="2" fill="#FFADAD"/>
-        <circle cx="140" cy="120" r="2" fill="#FFADAD"/><circle cx="30" cy="150" r="2" fill="#FFADAD"/>
-        <circle cx="180" cy="170" r="2" fill="#FFADAD"/>
-        <line x1="40" y1="40" x2="100" y2="20"/><line x1="100" y1="20" x2="160" y2="60"/>
-        <line x1="40" y1="40" x2="70" y2="100"/><line x1="70" y1="100" x2="140" y2="120"/>
-        <line x1="160" y1="60" x2="140" y2="120"/><line x1="70" y1="100" x2="30" y2="150"/>
-        <line x1="140" y1="120" x2="180" y2="170"/>
-      </g>
-    </svg>
-  </div>
-  <div class="hero-grid">
-    <div class="reveal">
+<section class="hero-banner" id="heroBanner">
+  <div class="hero-full reveal" id="heroCard">
+    <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
+    <div class="hero-eyebrow-wrap">
       <div class="eyebrow" id="heroEyebrow"><span class="dot"></span> ORDER ONLINE, GET IT DELIVERED EASILY</div>
     </div>
-    <div class="hero-visual reveal">
-      <div class="hero-blob"></div>
-      <div class="hero-card" id="heroCard">
-        <img id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
-        <div class="float-tag t1" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
-        <div class="float-tag t2" id="heroBadge2">🚚 One day delivery</div>
-      </div>
-    </div>
+    <div class="hb-float-tag t1" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
+    <div class="hb-float-tag t2" id="heroBadge2">🚚 One day delivery</div>
   </div>
 </section>
 
@@ -982,6 +970,7 @@
         <div class="pdp-badges" id="pdpBadges"></div>
         <div class="pdp-stars" id="pdpStars"></div>
         <div class="pdp-price" id="pdpPrice"></div>
+        <div class="pdp-free-delivery"><span class="van">🚚</span> Free delivery all over Bahrain</div>
         <div class="pdp-stock" id="pdpStock"></div>
         <p class="pdp-desc" id="pdpDesc"></p>
         <div class="pdp-colors" id="pdpColors" style="display:none;">
@@ -1541,7 +1530,7 @@ updateAcctButton();
   }
 })();
 
-const CATEGORY_ICONS = { 'Audio':'🎧','Charging':'🔌','Wearables':'⌚','Accessories':'🧩','Smart Home':'🏠','Cables':'🔗','General':'✨' };
+const CATEGORY_ICONS = { 'Audio':'🎧','Charging':'🔌','Wearables':'⌚','Accessories':'🧩','Smart Home':'🏠','Cables':'🔗','Wellness':'🧘','Lifestyle':'🛋️','General':'✨' };
 
 function normalizeProduct(p){
   // Accepts either a legacy single `image` field or an `images` array
@@ -1567,13 +1556,14 @@ function discountPct(p){
 }
 function priceHtml(p, size){
   size = size || 'card';
+  const fd = '<div class="free-delivery"><span class="van">🚚</span> Free Delivery</div>';
   if(!p.compareAtPrice) return size==='pdp'
     ? `${p.price.toFixed(3)} <small>BHD</small>`
-    : `<div class="price-tag">${p.price.toFixed(3)} <small>BHD</small></div>`;
+    : `<div class="price-tag">${p.price.toFixed(3)} <small>BHD</small>${fd}</div>`;
   if(size === 'pdp'){
     return `<span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small><span class="save-tag">Save ${discountPct(p)}%</span>`;
   }
-  return `<div class="price-tag"><span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small></div>`;
+  return `<div class="price-tag"><span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small>${fd}</div>`;
 }
 
 async function loadProducts(){
@@ -2454,21 +2444,17 @@ window.addEventListener('keydown', (e) => {
 
 function applyHeroSettings(settings){
   if(!settings || !(settings.heroActive === true || settings.heroActive === 'TRUE')) return;
-  if(settings.heroEyebrow) document.getElementById('heroEyebrow').innerHTML = `<span class="dot"></span> ${settings.heroEyebrow}`;
-  if(settings.heroTitle){
-    const words = settings.heroTitle.trim().split(' ');
-    const last = words.pop();
-    document.getElementById('heroTitle').innerHTML = `${words.join(' ')} <span>${last}</span>`;
-  }
-  if(settings.heroSubtitle) document.getElementById('heroSubtitle').textContent = settings.heroSubtitle;
-  if(settings.heroCtaText) document.getElementById('heroCtaBtn').textContent = settings.heroCtaText;
-  if(settings.heroImage) document.getElementById('heroImage').src = settings.heroImage;
-  if(settings.heroBadge1) document.getElementById('heroBadge1').innerHTML = `<span class="pip"></span> ${settings.heroBadge1}`;
-  if(settings.heroBadge2) document.getElementById('heroBadge2').textContent = settings.heroBadge2;
+  const eyebrowEl = document.getElementById('heroEyebrow');
+  if(settings.heroEyebrow && eyebrowEl) eyebrowEl.innerHTML = `<span class="dot"></span> ${settings.heroEyebrow}`;
+  const imgEl = document.getElementById('heroImage');
+  if(settings.heroImage && imgEl) imgEl.src = settings.heroImage;
+  const b1El = document.getElementById('heroBadge1');
+  if(settings.heroBadge1 && b1El) b1El.innerHTML = `<span class="pip"></span> ${settings.heroBadge1}`;
+  const b2El = document.getElementById('heroBadge2');
+  if(settings.heroBadge2 && b2El) b2El.textContent = settings.heroBadge2;
   if(settings.heroProductId){
     const card = document.getElementById('heroCard');
-    card.style.cursor = 'pointer';
-    card.onclick = () => openProduct(settings.heroProductId);
+    if(card){ card.style.cursor = 'pointer'; card.onclick = () => openProduct(settings.heroProductId); }
   }
 }
 async function loadSettings(){
