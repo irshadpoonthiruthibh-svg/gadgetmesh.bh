@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <title>GadgetMesh.bh - Complete solution for Gadgets</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -668,7 +669,7 @@
   }
 </style>
 </head>
-<body>
+<body class="notranslate">
 
 <div id="introScreen">
   <div class="intro-inner">
@@ -1790,10 +1791,10 @@ async function translateProductsIfNeeded(products){
   if(!toTranslate.length) return;
   await Promise.all(toTranslate.map(t => translateToArabic(t)));
   if(currentLang !== 'ar') return; // language may have changed back while awaiting
-  renderProducts();
-  renderFeatured();
-  renderBestsellers();
-  if(typeof PDP_PRODUCT !== 'undefined' && PDP_PRODUCT) openProduct(PDP_PRODUCT.id);
+  safeCall(renderProducts);
+  safeCall(renderFeatured);
+  safeCall(renderBestsellers);
+  safeCall(() => { if(typeof PDP_PRODUCT !== 'undefined' && PDP_PRODUCT) openProduct(PDP_PRODUCT.id); });
 }
 
 function setLanguage(lang){
@@ -1821,27 +1822,32 @@ function applyLanguage(lang){
   if(mAr) mAr.classList.toggle('active', currentLang === 'ar');
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = T(el.getAttribute('data-i18n'));
+    try{ el.textContent = T(el.getAttribute('data-i18n')); }catch(e){}
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.setAttribute('placeholder', T(el.getAttribute('data-i18n-placeholder')));
+    try{ el.setAttribute('placeholder', T(el.getAttribute('data-i18n-placeholder'))); }catch(e){}
   });
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
-    el.innerHTML = T(el.getAttribute('data-i18n-html'));
+    try{ el.innerHTML = T(el.getAttribute('data-i18n-html')); }catch(e){}
   });
 
-  applyHeroLanguage();
-  applyAnnouncementLanguage();
+  safeCall(applyHeroLanguage);
+  safeCall(applyAnnouncementLanguage);
 
-  // re-render dynamic content so product names, categories, badges, etc. pick up the new language
-  if(typeof buildCategoryChips === 'function') buildCategoryChips();
-  if(typeof buildCategoryCards === 'function') buildCategoryCards();
-  if(typeof renderProducts === 'function') renderProducts();
-  if(typeof renderFeatured === 'function') renderFeatured();
-  if(typeof renderBestsellers === 'function') renderBestsellers();
-  if(typeof renderCart === 'function') renderCart();
-  if(typeof buildPayOptions === 'function' && document.getElementById('payOptions') && document.getElementById('payOptions').children.length) buildPayOptions();
-  if(typeof PDP_PRODUCT !== 'undefined' && PDP_PRODUCT && typeof openProduct === 'function') openProduct(PDP_PRODUCT.id);
+  // re-render dynamic content so product names, categories, badges, etc. pick up the new
+  // language. Each call is isolated so one failure (e.g. a DOM node touched by something
+  // else, like a browser's own page-translate feature) can't blank out the rest of the page.
+  safeCall(buildCategoryChips);
+  safeCall(buildCategoryCards);
+  safeCall(renderProducts);
+  safeCall(renderFeatured);
+  safeCall(renderBestsellers);
+  safeCall(renderCart);
+  safeCall(() => { if(document.getElementById('payOptions') && document.getElementById('payOptions').children.length) buildPayOptions(); });
+  safeCall(() => { if(typeof PDP_PRODUCT !== 'undefined' && PDP_PRODUCT) openProduct(PDP_PRODUCT.id); });
+}
+function safeCall(fn){
+  try{ if(typeof fn === 'function') fn(); }catch(e){ console.warn('applyLanguage step failed:', e); }
 }
 
 
