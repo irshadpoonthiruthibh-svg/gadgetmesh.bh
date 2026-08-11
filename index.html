@@ -234,12 +234,12 @@
   .cart-btn:hover{transform:translateY(-1px);}
   .badge-count{background:var(--blush);color:var(--blush-ink);border-radius:50%;width:19px;height:19px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;}
   .acct-btn{
-    background:none; border:1.5px solid var(--line); color:var(--ink); border-radius:30px;
-    padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; transition:border-color .15s ease;
+    background:none; border:1.5px solid var(--line); color:var(--ink); border-radius:50%;
+    width:38px; height:38px; padding:0; display:flex; align-items:center; justify-content:center;
+    font-size:17px; line-height:1; cursor:pointer; transition:border-color .15s ease; flex-shrink:0;
   }
   .acct-btn:hover{border-color:var(--blush-deep);}
   .acct-btn.logged-in{background:var(--paper-soft);border-color:var(--blush-deep);color:var(--blush-ink);}
-  @media (max-width:760px){ .acct-btn{padding:9px 12px;font-size:12px;} }
   .acct-wrap{position:relative;}
   .acct-menu{
     position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--line);
@@ -252,9 +252,9 @@
   /* ---------- language switcher ---------- */
   .lang-wrap{position:relative;}
   .lang-btn{
-    background:none; border:1.5px solid var(--line); color:var(--ink); border-radius:30px;
-    padding:9px 14px; font-weight:700; font-size:13px; cursor:pointer; transition:border-color .15s ease;
-    display:flex; align-items:center; gap:6px;
+    background:none; border:1.5px solid var(--line); color:var(--ink); border-radius:50%;
+    width:34px; height:34px; padding:0; display:flex; align-items:center; justify-content:center;
+    font-size:14px; line-height:1; cursor:pointer; transition:border-color .15s ease; flex-shrink:0;
   }
   .lang-btn:hover{border-color:var(--blush-deep);}
   .lang-menu{
@@ -725,14 +725,14 @@
     </div>
     <div class="nav-right">
       <div class="lang-wrap">
-        <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()">🌐 <span id="langBtnLabel">EN</span></button>
+        <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Language">🌐</button>
         <div class="lang-menu" id="langMenu">
           <a href="javascript:void(0)" onclick="setLanguage('en')">English</a>
           <a href="javascript:void(0)" onclick="setLanguage('ar')">العربية</a>
         </div>
       </div>
       <div class="acct-wrap">
-        <button class="acct-btn" id="acctBtn" onclick="onAcctBtnClick()" data-i18n="navLogin">Login</button>
+        <button class="acct-btn" id="acctBtn" onclick="onAcctBtnClick()" aria-label="Account">👤</button>
         <div class="acct-menu" id="acctMenu">
           <a href="javascript:void(0)" onclick="openMyOrders('orders')" data-i18n="acctOrders">📦 My orders</a>
           <a href="javascript:void(0)" onclick="openMyOrders('addresses')" data-i18n="acctAddresses">🏠 Saved addresses</a>
@@ -758,7 +758,7 @@
 
 <section class="hero-banner" id="heroBanner">
   <div class="hero-announce reveal">
-    <div class="eyebrow-standalone" id="heroEyebrow"><span class="dot"></span> ORDER ONLINE, GET IT DELIVERED EASILY</div>
+    <div class="eyebrow-standalone" id="heroEyebrow"><span class="dot"></span> <span data-i18n="heroEyebrowDefault">ORDER ONLINE, GET IT DELIVERED EASILY</span></div>
   </div>
   <div class="hero-full reveal" id="heroCard">
     <img class="hs-slide active" id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
@@ -1203,10 +1203,12 @@ document.getElementById('waFooterLink').href = `https://wa.me/${CONFIG.WHATSAPP_
 function updateAcctButton(){
   const btn = document.getElementById('acctBtn');
   if(CUSTOMER){
-    btn.textContent = `Hi, ${CUSTOMER.name.split(' ')[0]}`;
+    btn.textContent = '🙂';
+    btn.title = `Hi, ${CUSTOMER.name.split(' ')[0]}`;
     btn.classList.add('logged-in');
   } else {
-    btn.textContent = 'Login';
+    btn.textContent = '👤';
+    btn.title = 'Login';
     btn.classList.remove('logged-in');
   }
 }
@@ -1652,6 +1654,7 @@ let currentLang = 'en';
 const I18N = {
   en: {
     navShop:'Shop', navCategories:'Categories', navReviews:'Reviews', navAbout:'About', navLogin:'Login', navCart:'Cart',
+    heroEyebrowDefault:'ORDER ONLINE, GET IT DELIVERED EASILY',
     acctOrders:'📦 My orders', acctAddresses:'🏠 Saved addresses', acctProfile:'⚙️ Profile', acctLogout:'↩ Log out',
     eyebrowHandpicked:'Handpicked', headFeatured:'Featured this week', subFeatured:'A short list we personally rate — swipe through.',
     eyebrowCrowd:'Crowd favorites', headBestsellers:'Best sellers', subBestsellers:'What Bahrain keeps adding to cart.',
@@ -1697,6 +1700,7 @@ const I18N = {
   },
   ar: {
     navShop:'المتجر', navCategories:'الفئات', navReviews:'التقييمات', navAbout:'من نحن', navLogin:'تسجيل الدخول', navCart:'السلة',
+    heroEyebrowDefault:'اطلب أونلاين، واحصل عليه بسهولة',
     acctOrders:'📦 طلباتي', acctAddresses:'🏠 العناوين المحفوظة', acctProfile:'⚙️ الملف الشخصي', acctLogout:'↩ تسجيل الخروج',
     eyebrowHandpicked:'مختارات خاصة', headFeatured:'مميزات هذا الأسبوع', subFeatured:'قائمة قصيرة نرشحها لكم بأنفسنا.',
     eyebrowCrowd:'الأكثر طلبًا', headBestsellers:'الأكثر مبيعًا', subBestsellers:'ما يضيفه أهل البحرين إلى سلتهم باستمرار.',
@@ -1810,8 +1814,8 @@ function applyLanguage(lang){
   document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
   document.body.classList.toggle('lang-ar', currentLang === 'ar');
 
-  const label = document.getElementById('langBtnLabel');
-  if(label) label.textContent = currentLang === 'ar' ? 'ع' : 'EN';
+  const langBtn = document.getElementById('langBtn');
+  if(langBtn) langBtn.title = currentLang === 'ar' ? 'English' : 'العربية';
   const mEn = document.getElementById('mobileLangEn'), mAr = document.getElementById('mobileLangAr');
   if(mEn) mEn.classList.toggle('active', currentLang === 'en');
   if(mAr) mAr.classList.toggle('active', currentLang === 'ar');
