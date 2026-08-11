@@ -323,27 +323,26 @@
             <label class="toggle-pill" id="heroActivePill"><input type="checkbox" id="heroActive" onchange="syncPill('heroActive','heroActivePill')"><span class="ic">✅</span> Show this banner on the homepage</label>
           </div>
           <div class="field full">
-            <label>Banner image <span class="opt">— paste an image URL, this is the main photo customers see first</span></label>
-            <img class="prev" id="heroImgPrev" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;border:1.5px dashed var(--line);margin-bottom:8px;" src="https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20" onerror="this.src='https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20'">
-            <input type="text" id="heroImage" placeholder="https://…" oninput="document.getElementById('heroImgPrev').src=this.value||'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20'">
+            <label>Banner image 1 <span class="opt">— paste an image URL, cropped to a 2:1 ratio works best</span></label>
+            <img class="prev" id="heroImgPrev" style="width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:12px;border:1.5px dashed var(--line);margin-bottom:8px;" src="https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20" onerror="this.src='https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20'">
+            <input type="text" id="heroImage" placeholder="https://…" oninput="document.getElementById('heroImgPrev').src=this.value||'https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20'">
           </div>
           <div class="row">
-            <div class="field"><label>Small label above headline</label><input id="heroEyebrow" placeholder="New drops every week · Delivered across Bahrain"></div>
+            <div class="field"><label>Banner image 2 <span class="opt">(optional — adds a slide)</span></label><input type="text" id="heroImage2" placeholder="https://…"></div>
+            <div class="field"><label>Banner image 3 <span class="opt">(optional — adds a slide)</span></label><input type="text" id="heroImage3" placeholder="https://…"></div>
           </div>
+          <p class="muted" style="margin:-4px 0 14px;">Add 2 or 3 images to turn the banner into an auto-rotating slideshow (5 seconds per slide, with dots and arrows). Leave 2 and 3 blank to show just one image.</p>
           <div class="row">
-            <div class="field full"><label>Headline</label><input id="heroTitle" placeholder="Tech gear that just works, delivered fast."></div>
-          </div>
-          <div class="field full"><label>Subtitle</label><textarea id="heroSubtitle" placeholder="Earbuds, chargers, smart accessories and everyday gadgets — curated for Bahrain, priced in BHD."></textarea></div>
-          <div class="row">
-            <div class="field"><label>Button text</label><input id="heroCtaText" placeholder="Shop the collection"></div>
-            <div class="field"><label>Link to a product <span class="opt">(optional)</span></label>
-              <select id="heroProductId"><option value="">— none, just a photo —</option></select>
-            </div>
+            <div class="field"><label>Small label above the banner</label><input id="heroEyebrow" placeholder="Order online, get it delivered easily"></div>
           </div>
           <div class="row">
             <div class="field"><label>Floating tag 1</label><input id="heroBadge1" placeholder="In stock in Manama"></div>
             <div class="field"><label>Floating tag 2</label><input id="heroBadge2" placeholder="🚚 Same-week delivery"></div>
           </div>
+          <div class="field"><label>Link to a product <span class="opt">(optional — clicking the banner opens this product)</span></label>
+            <select id="heroProductId"><option value="">— none, just a photo —</option></select>
+          </div>
+          <p class="muted" style="margin:6px 0;">Arabic text is generated automatically for customers who switch the site to Arabic — you don't need to translate it yourself.</p>
           <button class="primary" onclick="saveHeroSettings()">Save homepage banner</button>
           <span class="muted" id="heroSaveMsg" style="margin-left:12px;"></span>
         </div>
@@ -351,9 +350,8 @@
           <h2>Live preview</h2>
           <p class="muted" style="margin-bottom:12px;">Roughly how the banner will look on the storefront.</p>
           <div style="border:1.5px solid var(--line);border-radius:14px;padding:16px;background:var(--paper);">
-            <div style="font-size:11px;font-weight:700;color:var(--blush-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" id="heroPreviewEyebrow">New drops every week</div>
-            <div style="font-family:'Sora';font-weight:800;font-size:18px;margin-bottom:8px;" id="heroPreviewTitle">Tech gear that just works.</div>
-            <img id="heroPreviewImg" src="https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:16/10;">
+            <div style="font-size:11px;font-weight:700;color:var(--blush-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" id="heroPreviewEyebrow">Order online, get it delivered easily</div>
+            <img id="heroPreviewImg" src="https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:2/1;">
           </div>
         </div>
       </div>
@@ -369,6 +367,7 @@
             <label>Message <span class="opt">— keep it short so it fits on one line</span></label>
             <input type="text" id="announcementText" placeholder="🎉 Free delivery all over Bahrain — every order, no minimum" oninput="updateAnnouncementPreview()">
           </div>
+          <p class="muted" style="margin:6px 0;">Translated to Arabic automatically for customers browsing in Arabic.</p>
           <button class="primary" onclick="saveAnnouncementSettings()">Save announcement bar</button>
           <span class="muted" id="announcementSaveMsg" style="margin-left:12px;"></span>
         </div>
@@ -1159,11 +1158,10 @@ async function loadHeroSettings(){
     document.getElementById('heroActive').checked = s.heroActive === true || s.heroActive === 'TRUE';
     syncPill('heroActive','heroActivePill');
     document.getElementById('heroImage').value = s.heroImage || '';
-    document.getElementById('heroImgPrev').src = s.heroImage || 'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20';
+    document.getElementById('heroImgPrev').src = s.heroImage || 'https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20';
+    document.getElementById('heroImage2').value = s.heroImage2 || '';
+    document.getElementById('heroImage3').value = s.heroImage3 || '';
     document.getElementById('heroEyebrow').value = s.heroEyebrow || '';
-    document.getElementById('heroTitle').value = s.heroTitle || '';
-    document.getElementById('heroSubtitle').value = s.heroSubtitle || '';
-    document.getElementById('heroCtaText').value = s.heroCtaText || '';
     document.getElementById('heroBadge1').value = s.heroBadge1 || '';
     document.getElementById('heroBadge2').value = s.heroBadge2 || '';
     document.getElementById('heroProductId').value = s.heroProductId || '';
@@ -1175,21 +1173,19 @@ async function loadHeroSettings(){
   }catch(err){ /* settings sheet may not exist yet — defaults are fine */ }
 }
 function updateHeroPreview(){
-  document.getElementById('heroPreviewEyebrow').textContent = document.getElementById('heroEyebrow').value || 'New drops every week';
-  document.getElementById('heroPreviewTitle').textContent = document.getElementById('heroTitle').value || 'Tech gear that just works.';
-  document.getElementById('heroPreviewImg').src = document.getElementById('heroImage').value || 'https://placehold.co/600x375/F7F5F5/8A3B3B?text=%20';
+  document.getElementById('heroPreviewEyebrow').textContent = document.getElementById('heroEyebrow').value || 'Order online, get it delivered easily';
+  document.getElementById('heroPreviewImg').src = document.getElementById('heroImage').value || 'https://placehold.co/600x300/F7F5F5/8A3B3B?text=%20';
 }
-['heroEyebrow','heroTitle','heroImage'].forEach(id => {
+['heroEyebrow','heroImage'].forEach(id => {
   document.addEventListener('input', (e) => { if(e.target && e.target.id === id) updateHeroPreview(); });
 });
 async function saveHeroSettings(){
   const settings = {
     heroActive: document.getElementById('heroActive').checked,
     heroImage: document.getElementById('heroImage').value.trim(),
+    heroImage2: document.getElementById('heroImage2').value.trim(),
+    heroImage3: document.getElementById('heroImage3').value.trim(),
     heroEyebrow: document.getElementById('heroEyebrow').value.trim(),
-    heroTitle: document.getElementById('heroTitle').value.trim(),
-    heroSubtitle: document.getElementById('heroSubtitle').value.trim(),
-    heroCtaText: document.getElementById('heroCtaText').value.trim(),
     heroBadge1: document.getElementById('heroBadge1').value.trim(),
     heroBadge2: document.getElementById('heroBadge2').value.trim(),
     heroProductId: document.getElementById('heroProductId').value
