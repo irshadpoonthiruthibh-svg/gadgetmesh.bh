@@ -2483,18 +2483,22 @@ function applyAnnouncementSettings(settings){
   }
 }
 async function loadSettings(){
+  // Settings (hero banner, announcement bar) are admin-editable and should
+  // reflect immediately — so check the live backend first. settings.json is
+  // a static snapshot that isn't kept in sync automatically, so it's only
+  // used as a fallback if the live backend can't be reached.
   try{
-    const res = await fetch(`settings.json?v=${Date.now()}`);
-    if(!res.ok) throw new Error('no static file yet');
+    const res = await fetch(`${CONFIG.API_URL}?action=getSettings`);
     const data = await res.json();
     if(data.ok) { applyHeroSettings(data.settings); applyAnnouncementSettings(data.settings); return; }
-    throw new Error('static settings not ready');
+    throw new Error('live settings not ready');
   }catch(err){
     try{
-      const res2 = await fetch(`${CONFIG.API_URL}?action=getSettings`);
+      const res2 = await fetch(`settings.json?v=${Date.now()}`);
+      if(!res2.ok) throw new Error('no static file either');
       const data2 = await res2.json();
       if(data2.ok) { applyHeroSettings(data2.settings); applyAnnouncementSettings(data2.settings); }
-    }catch(err2){ /* keep defaults if backend isn't connected yet */ }
+    }catch(err2){ /* keep defaults if neither source is reachable */ }
   }
 }
 
