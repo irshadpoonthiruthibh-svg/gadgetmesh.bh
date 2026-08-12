@@ -2936,23 +2936,55 @@ function hsUpdateCount(){
 document.getElementById('heroBanner').addEventListener('mouseenter', () => { if(hsTimer) clearInterval(hsTimer); });
 document.getElementById('heroBanner').addEventListener('mouseleave', hsRestart);
 
+const SETTINGS_CACHE_KEY = 'gm_settings_cache_v1';
+function readSettingsCache(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed && parsed.settings) ? parsed.settings : null;
+  }catch(e){ return null; }
+}
+function writeSettingsCache(settings){
+  try{ localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify({ settings, ts: Date.now() })); }catch(e){ /* private mode / quota — fine to skip caching */ }
+}
+
 async function loadSettings(){
-  // Settings (hero banner, announcement bar) are admin-editable and should
-  // reflect immediately — so check the live backend first. settings.json is
-  // a static snapshot that isn't kept in sync automatically, so it's only
-  // used as a fallback if the live backend can't be reached.
+  // Instant path: apply the last-known-good banner/announcement settings
+  // immediately from cache, so the homepage banner never sits waiting on
+  // the network — it shows straight away, then quietly updates if anything
+  // changed.
+  const cached = readSettingsCache();
+  if(cached){
+    applyHeroSettings(cached);
+    applyAnnouncementSettings(cached);
+  }
+
+  // Refresh in the background. Live backend first, since admin changes
+  // there should still reflect right away; settings.json is only used as a
+  // last resort when the backend can't be reached AND nothing is cached.
   try{
     const res = await fetch(`${CONFIG.API_URL}?action=getSettings`);
     const data = await res.json();
-    if(data.ok) { applyHeroSettings(data.settings); applyAnnouncementSettings(data.settings); return; }
+    if(data.ok){
+      applyHeroSettings(data.settings);
+      applyAnnouncementSettings(data.settings);
+      writeSettingsCache(data.settings);
+      return;
+    }
     throw new Error('live settings not ready');
   }catch(err){
+    if(cached) return; // already showing the last-known-good banner — no need to chase the static file too
     try{
       const res2 = await fetch(`settings.json?v=${Date.now()}`);
       if(!res2.ok) throw new Error('no static file either');
       const data2 = await res2.json();
-      if(data2.ok) { applyHeroSettings(data2.settings); applyAnnouncementSettings(data2.settings); }
-    }catch(err2){ /* keep defaults if neither source is reachable */ }
+      if(data2.ok){
+        applyHeroSettings(data2.settings);
+        applyAnnouncementSettings(data2.settings);
+        writeSettingsCache(data2.settings);
+      }
+    }catch(err2){ /* keep the built-in defaults if nothing is reachable yet */ }
   }
 }
 
