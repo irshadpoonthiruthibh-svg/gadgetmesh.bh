@@ -2415,10 +2415,41 @@ function renderTestimonials(list){
     </div>
   `).join('');
 }
+const TESTIMONIALS_CACHE_KEY = 'gm_testimonials_cache_v1';
+const TESTIMONIALS_CACHE_MAX_AGE = 24 * 3600000; // 24h — social proof doesn't need to be second-by-second fresh
+function readTestimonialsCache(){
+  try{
+    const raw = localStorage.getItem(TESTIMONIALS_CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed && Array.isArray(parsed.reviews)) ? parsed : null;
+  }catch(e){ return null; }
+}
+function writeTestimonialsCache(reviews){
+  try{ localStorage.setItem(TESTIMONIALS_CACHE_KEY, JSON.stringify({ reviews, ts: Date.now() })); }catch(e){ /* private mode / quota — fine to skip caching */ }
+}
+
 async function loadHomeTestimonials(){
   const grid = document.getElementById('testiGrid');
   if(!grid) return;
-  if(!PRODUCTS.length){ renderTestimonials(DEFAULT_TESTIMONIALS); return; }
+
+  // Instant path: show cached real testimonials (or the defaults) right
+  // away — never make the homepage wait on this.
+  const cached = readTestimonialsCache();
+  if(cached && cached.reviews.length){
+    renderTestimonials(shuffleArray(cached.reviews).slice(0, 3));
+  } else if(!PRODUCTS.length){
+    renderTestimonials(DEFAULT_TESTIMONIALS);
+  }
+
+  // Scanning every product's reviews to find 5-star quotes means firing off
+  // one request per product — expensive, and not something that needs to
+  // happen on every single page load. Only redo it once the cache is
+  // properly stale (once a day); otherwise this function is done here.
+  const isStale = !cached || (Date.now() - cached.ts) > TESTIMONIALS_CACHE_MAX_AGE;
+  if(!isStale) return;
+  if(!PRODUCTS.length){ if(!cached) renderTestimonials(DEFAULT_TESTIMONIALS); return; }
+
   try{
     const targets = PRODUCTS.slice(0, 40);
     const results = await Promise.all(targets.map(p =>
@@ -2428,9 +2459,14 @@ async function loadHomeTestimonials(){
         .catch(() => [])
     ));
     const fiveStar = results.flat().filter(r => Number(r.rating) === 5 && (r.text || '').trim());
-    renderTestimonials(fiveStar.length ? shuffleArray(fiveStar).slice(0, 3) : DEFAULT_TESTIMONIALS);
+    if(fiveStar.length){
+      writeTestimonialsCache(fiveStar);
+      renderTestimonials(shuffleArray(fiveStar).slice(0, 3));
+    } else if(!cached){
+      renderTestimonials(DEFAULT_TESTIMONIALS);
+    }
   }catch(err){
-    renderTestimonials(DEFAULT_TESTIMONIALS);
+    if(!cached) renderTestimonials(DEFAULT_TESTIMONIALS);
   }
 }
 async function submitReview(){
@@ -2950,19 +2986,34 @@ function writeSettingsCache(settings){
 }
 
 async function loadSettings(){
-  // Instant path: apply the last-known-good banner/announcement settings
-  // immediately from cache, so the homepage banner never sits waiting on
-  // the network — it shows straight away, then quietly updates if anything
-  // changed.
+  // Instant path #1: apply last-known-good settings from cache right away.
   const cached = readSettingsCache();
   if(cached){
     applyHeroSettings(cached);
     applyAnnouncementSettings(cached);
   }
 
-  // Refresh in the background. Live backend first, since admin changes
-  // there should still reflect right away; settings.json is only used as a
-  // last resort when the backend can't be reached AND nothing is cached.
+  // Instant path #2 (first-ever visit, nothing cached yet): the static
+  // same-origin file is served straight from GitHub Pages' CDN and is far
+  // faster than waking up the live backend, so try it first and show it
+  // immediately rather than making a brand-new visitor wait on a cold start.
+  if(!cached){
+    try{
+      const res2 = await fetch(`settings.json?v=${Date.now()}`);
+      if(res2.ok){
+        const data2 = await res2.json();
+        if(data2.ok){
+          applyHeroSettings(data2.settings);
+          applyAnnouncementSettings(data2.settings);
+          writeSettingsCache(data2.settings);
+        }
+      }
+    }catch(err2){ /* fine — the live check below still runs */ }
+  }
+
+  // Always double-check the live backend in the background afterward, so
+  // admin changes still show up promptly without anyone having to wait on
+  // it for the very first paint.
   try{
     const res = await fetch(`${CONFIG.API_URL}?action=getSettings`);
     const data = await res.json();
@@ -2970,22 +3021,8 @@ async function loadSettings(){
       applyHeroSettings(data.settings);
       applyAnnouncementSettings(data.settings);
       writeSettingsCache(data.settings);
-      return;
     }
-    throw new Error('live settings not ready');
-  }catch(err){
-    if(cached) return; // already showing the last-known-good banner — no need to chase the static file too
-    try{
-      const res2 = await fetch(`settings.json?v=${Date.now()}`);
-      if(!res2.ok) throw new Error('no static file either');
-      const data2 = await res2.json();
-      if(data2.ok){
-        applyHeroSettings(data2.settings);
-        applyAnnouncementSettings(data2.settings);
-        writeSettingsCache(data2.settings);
-      }
-    }catch(err2){ /* keep the built-in defaults if nothing is reachable yet */ }
-  }
+  }catch(err){ /* static file or cache is already showing — fine to skip this round */ }
 }
 
 
