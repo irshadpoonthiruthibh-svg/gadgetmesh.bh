@@ -1916,39 +1916,79 @@ function priceHtml(p, size){
   return `<div class="price-tag"><span class="was">${p.compareAtPrice.toFixed(3)} BHD</span>${p.price.toFixed(3)} <small>BHD</small></div>`;
 }
 
-async function loadProducts(){
+const PRODUCTS_CACHE_KEY = 'gm_products_cache_v1';
+function readProductsCache(){
   try{
-    // Fast path: same-origin static file kept fresh by the GitHub Action.
-    // Cache-busted per hour (matching the sync schedule) rather than per
-    // page load, so repeat visits within the hour load instantly from the
-    // browser cache instead of always making a fresh network request.
-    const hourBucket = Math.floor(Date.now() / 3600000);
-    const res = await fetch(`products.json?v=${hourBucket}`);
-    if(!res.ok) throw new Error('no static file yet');
-    const data = await res.json();
-    PRODUCTS = (data.products || []);
-    if(!PRODUCTS.length) throw new Error('empty static file');
-  }catch(err){
-    // Fallback only if products.json is missing/empty (e.g. before the
-    // Action has ever run) — go straight to the live backend. If that also
-    // fails, show an empty state rather than any placeholder/demo data.
-    try{
-      const res2 = await fetch(`${CONFIG.API_URL}?action=listProducts`);
-      const data2 = await res2.json();
-      PRODUCTS = (data2.products || []);
-    }catch(err2){
-      PRODUCTS = [];
-    }
-  }
-  PRODUCTS = PRODUCTS.map(normalizeProduct);
+    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || !Array.isArray(parsed.products) || !parsed.products.length) return null;
+    return parsed.products;
+  }catch(e){ return null; }
+}
+function writeProductsCache(products){
+  try{ localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({ products, ts: Date.now() })); }catch(e){ /* private mode / quota — fine to skip caching */ }
+}
+
+let productsRouteHandled = false;
+function renderAllProductSections(){
   buildCategoryChips();
   buildCategoryCards();
   renderProducts();
   renderFeatured();
   renderBestsellers();
-  handleRouteFromHash();
-  handleReviewLinkFromQuery();
+  if(!productsRouteHandled){
+    productsRouteHandled = true;
+    handleRouteFromHash();
+    handleReviewLinkFromQuery();
+  }
 }
+
+async function loadProducts(){
+  // Instant path: if we have last-known-good products cached from a
+  // previous visit, render them immediately with zero network wait —
+  // this is what makes repeat browsing feel instant.
+  const cached = readProductsCache();
+  if(cached){
+    PRODUCTS = cached.map(normalizeProduct);
+    renderAllProductSections();
+  }
+
+  // Always refresh in the background so both the cache and (if the page is
+  // still open) the visible catalogue stay current. Same-origin static file
+  // first (fastest, kept in sync hourly by the GitHub Action), then the
+  // live backend if that isn't available yet.
+  let fresh = null;
+  try{
+    const hourBucket = Math.floor(Date.now() / 3600000);
+    const res = await fetch(`products.json?v=${hourBucket}`);
+    if(!res.ok) throw new Error('no static file yet');
+    const data = await res.json();
+    if((data.products || []).length) fresh = data.products;
+  }catch(err){ /* fall through to the live backend */ }
+
+  if(!fresh){
+    try{
+      const res2 = await fetch(`${CONFIG.API_URL}?action=listProducts`);
+      const data2 = await res2.json();
+      if((data2.products || []).length) fresh = data2.products;
+    }catch(err2){ /* both sources unavailable right now */ }
+  }
+
+  if(fresh){
+    PRODUCTS = fresh.map(normalizeProduct);
+    writeProductsCache(fresh);
+    renderAllProductSections();
+  } else if(!cached){
+    // Nothing cached from before and nothing loaded just now — only then
+    // show the empty state, instead of leaving fake/placeholder data up.
+    PRODUCTS = [];
+    renderAllProductSections();
+  }
+  // If fresh fetches failed but we had a cache, the cached catalogue simply
+  // stays on screen — no error shown, since the customer can still browse.
+}
+
 
 /* Handles a ?reviewProduct=ID link from the "delivered" order email —
    opens that product and either prompts login (remembering to come back
