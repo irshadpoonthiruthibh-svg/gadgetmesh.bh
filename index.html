@@ -16,6 +16,9 @@
 <link rel="preconnect" href="https://res.cloudinary.com">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+<link rel="preload" as="image" href="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" fetchpriority="high">
+<link rel="preload" as="image" href="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786438662/ChatGPT_Image_Aug_11_2026_11_56_42_AM_ivlkpk.png">
+<link rel="preload" as="image" href="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786526557/ChatGPT_Image_Aug_12_2026_12_22_16_PM_x9xtos.png">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Jost:wght@300;400;500&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -770,12 +773,12 @@
     <div class="eyebrow-standalone" id="heroEyebrow"><span class="dot"></span> <span data-i18n="heroEyebrowDefault">ORDER ONLINE, GET IT DELIVERED EASILY</span></div>
   </div>
   <div class="hero-full reveal" id="heroCard">
-    <img class="hs-slide active" id="heroImage" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget">
-    <img class="hs-slide" id="heroImage2" alt="Featured gadget" style="display:none;">
-    <img class="hs-slide" id="heroImage3" alt="Featured gadget" style="display:none;">
-    <button class="hs-arrow prev" onclick="hsGo(-1)" aria-label="Previous" style="display:none;">‹</button>
-    <button class="hs-arrow next" onclick="hsGo(1)" aria-label="Next" style="display:none;">›</button>
-    <div class="hs-dots" id="hsDots" style="display:none;">
+    <img class="hs-slide active" id="heroImage" data-slide="0" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget" fetchpriority="high" onclick="hsSlideClick(0)">
+    <img class="hs-slide" id="heroImage2" data-slide="1" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786438662/ChatGPT_Image_Aug_11_2026_11_56_42_AM_ivlkpk.png" alt="Featured gadget" loading="eager" onclick="hsSlideClick(1)">
+    <img class="hs-slide" id="heroImage3" data-slide="2" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786526557/ChatGPT_Image_Aug_12_2026_12_22_16_PM_x9xtos.png" alt="Featured gadget" loading="eager" onclick="hsSlideClick(2)">
+    <button class="hs-arrow prev" onclick="hsGo(-1)" aria-label="Previous">‹</button>
+    <button class="hs-arrow next" onclick="hsGo(1)" aria-label="Next">›</button>
+    <div class="hs-dots" id="hsDots">
       <span class="active" onclick="hsGoTo(0)"></span>
       <span onclick="hsGoTo(1)"></span>
       <span onclick="hsGoTo(2)"></span>
@@ -2887,11 +2890,22 @@ function applyHeroSettings(settings){
   const img3El = document.getElementById('heroImage3');
   if(settings.heroImage2 && img2El) img2El.src = settings.heroImage2;
   if(settings.heroImage3 && img3El) img3El.src = settings.heroImage3;
-  if(settings.heroProductId){
-    const card = document.getElementById('heroCard');
-    if(card){ card.style.cursor = 'pointer'; card.onclick = (e) => { if(e.target.closest('.hs-arrow,.hs-dots')) return; openProduct(settings.heroProductId); }; }
-  }
+  hsApplySlideLinks();
   hsUpdateCount();
+}
+function hsApplySlideLinks(){
+  const s = LAST_SETTINGS;
+  if(!s) return;
+  const ids = [s.heroProductId, s.heroProductId2, s.heroProductId3];
+  [document.getElementById('heroImage'), document.getElementById('heroImage2'), document.getElementById('heroImage3')].forEach((img, i) => {
+    if(img) img.style.cursor = ids[i] ? 'pointer' : 'default';
+  });
+}
+function hsSlideClick(i){
+  const s = LAST_SETTINGS;
+  if(!s) return;
+  const pid = i === 0 ? s.heroProductId : (i === 1 ? s.heroProductId2 : s.heroProductId3);
+  if(pid) openProduct(pid);
 }
 function applyHeroLanguage(){
   const s = LAST_SETTINGS;
