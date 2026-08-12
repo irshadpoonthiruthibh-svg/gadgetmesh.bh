@@ -12,6 +12,10 @@
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#FFADAD">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://res.cloudinary.com">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://script.googleusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Jost:wght@300;400;500&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -1717,7 +1721,8 @@ const I18N = {
     maintTitle:"This payment option is under maintenance",
     maintText:"Don't worry — you can proceed confidently with Cash on Delivery and pay with cash or Benefit at your door when your order arrives.",
     maintCodBtn:'Proceed with Cash on Delivery',
-    preparingBenefitpay:'Preparing BenefitPay QR', placingOrder:'Placing order'
+    preparingBenefitpay:'Preparing BenefitPay QR', placingOrder:'Placing order',
+    noProductsLoaded:"We couldn't load products right now — please refresh the page in a moment."
   },
   ar: {
     navShop:'المتجر', navCategories:'الفئات', navReviews:'التقييمات', navAbout:'من نحن', navLogin:'تسجيل الدخول', navCart:'السلة',
@@ -1769,7 +1774,8 @@ const I18N = {
     maintTitle:'طريقة الدفع هذه تحت الصيانة',
     maintText:'لا تقلق — يمكنك المتابعة بثقة عبر الدفع عند الاستلام، وادفع نقدًا أو عبر Benefit عند وصول طلبك.',
     maintCodBtn:'المتابعة بالدفع عند الاستلام',
-    preparingBenefitpay:'جارِ تجهيز BenefitPay QR', placingOrder:'جارِ تأكيد الطلب'
+    preparingBenefitpay:'جارِ تجهيز BenefitPay QR', placingOrder:'جارِ تأكيد الطلب',
+    noProductsLoaded:'تعذر تحميل المنتجات الآن — يرجى تحديث الصفحة بعد قليل.'
   }
 };
 function T(key){
@@ -1913,23 +1919,25 @@ function priceHtml(p, size){
 async function loadProducts(){
   try{
     // Fast path: same-origin static file kept fresh by the GitHub Action.
-    // No cold-start wait, loads instantly for every visitor.
-    const res = await fetch(`products.json?v=${Date.now()}`);
+    // Cache-busted per hour (matching the sync schedule) rather than per
+    // page load, so repeat visits within the hour load instantly from the
+    // browser cache instead of always making a fresh network request.
+    const hourBucket = Math.floor(Date.now() / 3600000);
+    const res = await fetch(`products.json?v=${hourBucket}`);
     if(!res.ok) throw new Error('no static file yet');
     const data = await res.json();
     PRODUCTS = (data.products || []);
     if(!PRODUCTS.length) throw new Error('empty static file');
   }catch(err){
     // Fallback only if products.json is missing/empty (e.g. before the
-    // Action has ever run) — go straight to the live backend instead of
-    // showing unrelated sample data.
+    // Action has ever run) — go straight to the live backend. If that also
+    // fails, show an empty state rather than any placeholder/demo data.
     try{
       const res2 = await fetch(`${CONFIG.API_URL}?action=listProducts`);
       const data2 = await res2.json();
       PRODUCTS = (data2.products || []);
-      if(!PRODUCTS.length) PRODUCTS = SAMPLE_PRODUCTS;
     }catch(err2){
-      PRODUCTS = SAMPLE_PRODUCTS;
+      PRODUCTS = [];
     }
   }
   PRODUCTS = PRODUCTS.map(normalizeProduct);
@@ -1995,7 +2003,7 @@ function renderProducts(){
   document.getElementById('resultCount').textContent = T(filtered.length === 1 ? 'productAvailable' : 'productsAvailable').replace('{n}', filtered.length);
   const grid = document.getElementById('productGrid');
   if(!filtered.length){
-    grid.innerHTML = `<div class="empty">${T('noProductsMatch')}</div>`;
+    grid.innerHTML = `<div class="empty">${PRODUCTS.length ? T('noProductsMatch') : T('noProductsLoaded')}</div>`;
     observeReveal();
     return;
   }
@@ -2016,7 +2024,7 @@ function productCardHtml(p){
   return `
     <div class="card" onclick="openProduct('${p.id}')">
       ${badges ? `<div class="card-badges">${badges}</div>` : ''}
-      <div class="imgwrap"><img src="${p.images[0]}" alt="${pName(p)}"></div>
+      <div class="imgwrap"><img src="${p.images[0]}" alt="${pName(p)}" loading="lazy" decoding="async"></div>
       <div class="body">
         <div class="cat">${catLabel(p.category)}</div>
         <div class="name">${pName(p)}</div>
@@ -2176,7 +2184,7 @@ function openProduct(id){
 
   setPdpImage(0);
   document.getElementById('pdpThumbs').innerHTML = p.images.map((img,i) => `
-    <div class="pdp-thumb ${i===0?'active':''}" data-i="${i}" onclick="setPdpImage(${i})"><img src="${img}"></div>
+    <div class="pdp-thumb ${i===0?'active':''}" data-i="${i}" onclick="setPdpImage(${i})"><img src="${img}" loading="lazy" decoding="async"></div>
   `).join('');
 
   document.getElementById('pdpQty').textContent = PDP_QTY;
@@ -2431,7 +2439,7 @@ function renderCart(){
   const cartItemName = (i) => (currentLang === 'ar' && translationCache.ar[i.name]) ? translationCache.ar[i.name] : i.name;
   wrap.innerHTML = CART.length ? CART.map(i => `
     <div class="cart-item">
-      <img src="${i.image || 'https://placehold.co/100x100/FDF7F7/8A3B3B?text=Item'}">
+      <img src="${i.image || 'https://placehold.co/100x100/FDF7F7/8A3B3B?text=Item'}" loading="lazy" decoding="async">
       <div class="ci-info">
         <div class="ci-name">${cartItemName(i)}</div>
         ${i.color ? `<div style="font-size:12px;color:var(--ink-soft);">${T('pdpColorLabel')}: ${i.color}</div>` : ''}
@@ -2745,34 +2753,6 @@ function copyQrAmount(){
     setTimeout(() => btn.textContent = old, 1500);
   }).catch(() => {});
 }
-
-
-const SAMPLE_PRODUCTS = [
-  { id:'p1', name:'Wireless Earbuds Pro', price:18.500, compareAtPrice:24.900, category:'Audio', stock:14, featured:true, bestseller:true,
-    description:'Active noise cancellation, 28-hour case battery, and a snug fit built for all-day wear — from commute to gym.',
-    images:['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80','https://images.unsplash.com/photo-1590658165737-15a047b7c887?w=800&q=80','https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=800&q=80','https://images.unsplash.com/photo-1631867675167-758b25e5c8db?w=800&q=80','https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800&q=80'] },
-  { id:'p2', name:'65W Fast Charger', price:9.900, compareAtPrice:13.500, category:'Charging', stock:22, featured:false, bestseller:true,
-    description:'GaN-based 65W charger that fits in your pocket and charges a laptop, tablet, and phone without frying any of them.',
-    images:['https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&q=80','https://images.unsplash.com/photo-1591290619762-c8b578bd9a4d?w=800&q=80','https://images.unsplash.com/photo-1585338447937-7082f8fc763d?w=800&q=80','https://images.unsplash.com/photo-1609592424748-c2b6ac3bfb1a?w=800&q=80'] },
-  { id:'p3', name:'Smart Fitness Band', price:14.250, category:'Wearables', stock:8, featured:true, bestseller:false,
-    description:'Heart-rate, sleep, and step tracking with a 10-day battery, syncing to a simple companion app.',
-    images:['https://images.unsplash.com/photo-1544117519-31a4b719223d?w=800&q=80','https://images.unsplash.com/photo-1575311373937-c0f0f8b1e5dc?w=800&q=80','https://images.unsplash.com/photo-1575695342320-d2d2d2f9d3fd?w=800&q=80'] },
-  { id:'p4', name:'Braided USB-C Cable 2m', price:4.900, category:'Cables', stock:40, featured:false, bestseller:false,
-    description:'Nylon-braided, reinforced connectors, rated for 10,000+ bends. The last cable you\'ll need to replace.',
-    images:['https://images.unsplash.com/photo-1591290619762-c8b578bd9a4d?w=800&q=80','https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&q=80'] },
-  { id:'p5', name:'MagSafe-Style Power Bank', price:16.750, compareAtPrice:21.900, category:'Charging', stock:3, featured:true, bestseller:true,
-    description:'Magnetic 5,000mAh pack that snaps onto your phone and tops it up wirelessly — no cable, no fuss.',
-    images:['https://images.unsplash.com/photo-1609592424748-c2b6ac3bfb1a?w=800&q=80','https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&q=80','https://images.unsplash.com/photo-1591290619762-c8b578bd9a4d?w=800&q=80'] },
-  { id:'p6', name:'Bluetooth Speaker Mini', price:12.500, category:'Audio', stock:17, featured:false, bestseller:false,
-    description:'Pocket-sized speaker with surprisingly full sound and IPX6 splash resistance for the beach or the shower.',
-    images:['https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80','https://images.unsplash.com/photo-1608043152267-8b19c9dea2f0?w=800&q=80'] },
-  { id:'p7', name:'Smart Plug (Wi-Fi)', price:7.900, category:'Smart Home', stock:25, featured:false, bestseller:true,
-    description:'Turn any socket smart — schedule, voice control, and monitor usage straight from your phone.',
-    images:['https://images.unsplash.com/photo-1558002038-1055907df827?w=800&q=80','https://images.unsplash.com/photo-1558002038-bacd35b31c0e?w=800&q=80'] },
-  { id:'p8', name:'Phone Ring Stand', price:2.500, category:'Accessories', stock:60, featured:false, bestseller:false,
-    description:'A grippy metal ring that doubles as a kickstand — small, cheap, and genuinely useful every day.',
-    images:['https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=800&q=80'] }
-];
 
 window.addEventListener('scroll', () => {
   document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 8);
