@@ -597,8 +597,12 @@
   .pay-opt{border:1.5px solid var(--line);border-radius:12px;padding:13px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
   .pay-opt.selected{border-color:var(--blush-deep);background:var(--paper-soft);}
   .pay-opt input{margin-top:3px;}
-  .pay-opt .pt{font-weight:700;font-size:14px;}
+  .pay-opt .pt{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;}
   .pay-opt .pd{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .pay-opt.unavailable{cursor:pointer;opacity:0.6;}
+  .pay-opt.unavailable .pt{color:var(--ink-soft);}
+  .pay-badge-soon{background:#FDE7E7;color:var(--blush-ink);font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:0.02em;white-space:nowrap;}
+  .maint-emoji{width:56px;height:56px;border-radius:50%;background:var(--paper-soft);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;}
   .submit-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:15px;cursor:pointer;}
   .submit-btn:disabled,.wa-btn:disabled{opacity:0.65;cursor:not-allowed;}
   .btn-spinner{display:none;width:14px;height:14px;margin-left:9px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;vertical-align:-2px;animation:btnspin .7s linear infinite;}
@@ -966,6 +970,16 @@
         <button class="submit-btn" style="margin-top:8px;" onclick="closeCheckout()" data-i18n="confirmDone">Done</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="paymentMaintOverlay">
+  <div class="modal" style="max-width:380px;text-align:center;position:relative;">
+    <button class="close-x" onclick="closePaymentMaint()">✕</button>
+    <div class="maint-emoji">🛠️</div>
+    <h3 data-i18n="maintTitle" style="margin-bottom:8px;">This payment option is under maintenance</h3>
+    <p style="color:var(--ink-soft);font-size:13.5px;line-height:1.6;margin-bottom:22px;" data-i18n="maintText">Don't worry — you can proceed confidently with Cash on Delivery and pay with cash or Benefit at your door when your order arrives.</p>
+    <button class="submit-btn" onclick="proceedWithCod()" data-i18n="maintCodBtn">Proceed with Cash on Delivery</button>
   </div>
 </div>
 
@@ -1697,7 +1711,13 @@ const I18N = {
     sortNewest:'Newest first', sortHighest:'Highest rated', sortLowest:'Lowest rated', writeReview:'Write a review',
     reviewsLabel:'review', reviewsLabelPlural:'reviews', defaultProductDesc:'A GadgetMesh.bh pick — quality checked, priced fairly in BHD, and ready to ship across Bahrain.',
     removeBtn:'Remove', payBenefitpayLabel:'BenefitPay QR', payBenefitpayDesc:'Scan our QR in the BenefitPay app, then send your screenshot on WhatsApp to confirm.',
-    payCodLabel:'Cash on Delivery', payCodDesc:'Pay in cash when your order arrives.'
+    payCodLabel:'Cash on Delivery', payCodDesc:'Pay in cash when your order arrives.',
+    payCardLabel:'Credit / Debit Card', payCardDesc:'Pay securely online with your card.',
+    paySoonBadge:'Coming soon', placeOrderBtnBenefitpay:'Proceed with BenefitPay QR',
+    maintTitle:"This payment option is under maintenance",
+    maintText:"Don't worry — you can proceed confidently with Cash on Delivery and pay with cash or Benefit at your door when your order arrives.",
+    maintCodBtn:'Proceed with Cash on Delivery',
+    preparingBenefitpay:'Preparing BenefitPay QR', placingOrder:'Placing order'
   },
   ar: {
     navShop:'المتجر', navCategories:'الفئات', navReviews:'التقييمات', navAbout:'من نحن', navLogin:'تسجيل الدخول', navCart:'السلة',
@@ -1743,7 +1763,13 @@ const I18N = {
     sortNewest:'الأحدث أولاً', sortHighest:'الأعلى تقييمًا', sortLowest:'الأقل تقييمًا', writeReview:'أضف تقييمًا',
     reviewsLabel:'تقييم', reviewsLabelPlural:'تقييمات', defaultProductDesc:'اختيار GadgetMesh.bh — تم فحص الجودة، وسعر عادل بالدينار البحريني، وجاهز للشحن في جميع أنحاء البحرين.',
     removeBtn:'إزالة', payBenefitpayLabel:'رمز BenefitPay', payBenefitpayDesc:'امسح رمز QR في تطبيق BenefitPay، ثم أرسل لقطة الشاشة عبر واتساب للتأكيد.',
-    payCodLabel:'الدفع عند الاستلام', payCodDesc:'ادفع نقدًا عند وصول طلبك.'
+    payCodLabel:'الدفع عند الاستلام', payCodDesc:'ادفع نقدًا عند وصول طلبك.',
+    payCardLabel:'بطاقة ائتمان / خصم', payCardDesc:'ادفع أونلاين بأمان باستخدام بطاقتك.',
+    paySoonBadge:'قريبًا', placeOrderBtnBenefitpay:'المتابعة عبر BenefitPay QR',
+    maintTitle:'طريقة الدفع هذه تحت الصيانة',
+    maintText:'لا تقلق — يمكنك المتابعة بثقة عبر الدفع عند الاستلام، وادفع نقدًا أو عبر Benefit عند وصول طلبك.',
+    maintCodBtn:'المتابعة بالدفع عند الاستلام',
+    preparingBenefitpay:'جارِ تجهيز BenefitPay QR', placingOrder:'جارِ تأكيد الطلب'
   }
 };
 function T(key){
@@ -2429,14 +2455,18 @@ function openCart(){ document.getElementById('overlay').classList.add('show'); d
 function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
 
 const PAYMENT_METHODS = [
-  { id:'benefitpay', get label(){ return T('payBenefitpayLabel'); }, get desc(){ return T('payBenefitpayDesc'); } },
-  { id:'cod', get label(){ return T('payCodLabel'); }, get desc(){ return T('payCodDesc'); } }
+  { id:'card', get label(){ return T('payCardLabel'); }, get desc(){ return T('payCardDesc'); }, available:false },
+  { id:'benefitpay', get label(){ return T('payBenefitpayLabel'); }, get desc(){ return T('payBenefitpayDesc'); }, available:false },
+  { id:'cod', get label(){ return T('payCodLabel'); }, get desc(){ return T('payCodDesc'); }, available:true }
 ];
 function buildPayOptions(){
-  document.getElementById('payOptions').innerHTML = PAYMENT_METHODS.map((m,idx) => `
-    <label class="pay-opt ${idx===0?'selected':''}" onclick="selectPay(this)">
-      <input type="radio" name="pay" value="${m.id}" ${idx===0?'checked':''} onchange="updateSubmitBtnLabel()">
-      <div><div class="pt">${m.label}</div><div class="pd">${m.desc}</div></div>
+  document.getElementById('payOptions').innerHTML = PAYMENT_METHODS.map((m) => `
+    <label class="pay-opt ${m.available?'':'unavailable'} ${m.id==='cod'?'selected':''}" onclick="${m.available ? 'selectPay(this)' : `event.preventDefault();openPaymentMaint('${m.id}')`}">
+      <input type="radio" name="pay" value="${m.id}" ${m.id==='cod'?'checked':''} ${m.available?'':'disabled'} onchange="updateSubmitBtnLabel()">
+      <div style="flex:1;">
+        <div class="pt">${m.label} ${m.available ? '' : `<span class="pay-badge-soon" data-i18n="paySoonBadge">${T('paySoonBadge')}</span>`}</div>
+        <div class="pd">${m.desc}</div>
+      </div>
     </label>
   `).join('');
   updateSubmitBtnLabel();
@@ -2450,7 +2480,23 @@ function updateSubmitBtnLabel(){
   const method = document.querySelector('input[name=pay]:checked')?.value;
   const label = document.getElementById('submitBtnLabel');
   if(!label) return;
-  label.textContent = method === 'benefitpay' ? 'Proceed with BenefitPay QR' : 'Place order';
+  label.textContent = method === 'benefitpay' ? T('placeOrderBtnBenefitpay') : T('placeOrderBtn');
+}
+function openPaymentMaint(methodId){
+  document.getElementById('paymentMaintOverlay').classList.add('show');
+}
+function closePaymentMaint(){
+  document.getElementById('paymentMaintOverlay').classList.remove('show');
+}
+function proceedWithCod(){
+  const codRadio = document.querySelector('input[name=pay][value="cod"]');
+  if(codRadio){
+    codRadio.checked = true;
+    document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('selected'));
+    codRadio.closest('.pay-opt').classList.add('selected');
+    updateSubmitBtnLabel();
+  }
+  closePaymentMaint();
 }
 
 function openCheckout(){
@@ -2582,7 +2628,7 @@ async function placeOrder(){
   isPlacingOrder = true;
   submitBtn.disabled = true;
   submitSpinner.classList.add('show');
-  submitLabel.textContent = method === 'benefitpay' ? 'Preparing BenefitPay QR' : 'Placing order';
+  submitLabel.textContent = method === 'benefitpay' ? T('preparingBenefitpay') : T('placingOrder');
 
   try{
     if(CUSTOMER && !checkoutSelectedAddressId && document.getElementById('saveThisAddress').checked){
