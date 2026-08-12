@@ -1964,7 +1964,8 @@ async function loadProducts(){
     const res = await fetch(`products.json?v=${hourBucket}`);
     if(!res.ok) throw new Error('no static file yet');
     const data = await res.json();
-    if((data.products || []).length) fresh = data.products;
+    const list = Array.isArray(data) ? data : (data.products || []);
+    if(list.length) fresh = list;
   }catch(err){ /* fall through to the live backend */ }
 
   if(!fresh){
@@ -2972,7 +2973,7 @@ function hsUpdateCount(){
 document.getElementById('heroBanner').addEventListener('mouseenter', () => { if(hsTimer) clearInterval(hsTimer); });
 document.getElementById('heroBanner').addEventListener('mouseleave', hsRestart);
 
-const SETTINGS_CACHE_KEY = 'gm_settings_cache_v1';
+const SETTINGS_CACHE_KEY = 'gm_settings_cache_v2';
 function readSettingsCache(){
   try{
     const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
