@@ -251,7 +251,7 @@
   .acct-btn.logged-in{background:var(--paper-soft);border-color:var(--blush-deep);color:var(--blush-ink);}
   .acct-wrap{position:relative;}
   .acct-menu{
-    position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--line);
+    position:fixed; top:66px; right:24px; background:#fff; border:1px solid var(--line);
     border-radius:12px; box-shadow:var(--shadow-md); min-width:170px; padding:6px; display:none; z-index:520;
   }
   .acct-menu.show{display:block;}
@@ -259,7 +259,7 @@
   .acct-menu a:hover{background:var(--paper-soft);}
   @media (max-width:760px){
     .acct-menu{
-      position:fixed; top:auto; left:12px; right:12px; bottom:calc(64px + max(7px,env(safe-area-inset-bottom)));
+      top:auto; left:12px; right:12px; bottom:calc(64px + max(7px,env(safe-area-inset-bottom)));
       min-width:0; padding:8px; box-shadow:0 -4px 20px rgba(28,28,30,.14);
     }
     .acct-menu a{padding:13px 14px;font-size:14.5px;}
@@ -302,7 +302,9 @@
 
   /* ---------- RTL (Arabic) ---------- */
   html[dir="rtl"] body{direction:rtl;text-align:right;font-family:'Tajawal','Sora','Inter',sans-serif;}
-  html[dir="rtl"] .lang-menu, html[dir="rtl"] .acct-menu{right:auto;left:0;}
+  html[dir="rtl"] .lang-menu{right:auto;left:0;}
+  html[dir="rtl"] .acct-menu{right:auto;left:24px;}
+  @media (max-width:760px){ html[dir="rtl"] .acct-menu{left:12px;right:12px;} }
   html[dir="rtl"] .forgot-link{left:0;right:auto;}
   html[dir="rtl"] .close-x{right:auto;left:18px;}
   html[dir="rtl"] .drawer{right:auto;left:0;transform:translateX(-100%);}
@@ -787,12 +789,6 @@
       <div class="acct-wrap">
         <button class="acct-btn" id="acctBtn" onclick="onAcctBtnClick()" aria-label="Account">👤</button>
       </div>
-      <div class="acct-menu" id="acctMenu">
-        <a href="javascript:void(0)" onclick="openMyOrders('orders')" data-i18n="acctOrders">📦 My orders</a>
-        <a href="javascript:void(0)" onclick="openMyOrders('addresses')" data-i18n="acctAddresses">🏠 Saved addresses</a>
-        <a href="javascript:void(0)" onclick="openMyOrders('profile')" data-i18n="acctProfile">⚙️ Profile</a>
-        <a href="javascript:void(0)" onclick="doLogout()" data-i18n="acctLogout">↩ Log out</a>
-      </div>
       <button class="cart-btn" onclick="openCart()"><span data-i18n="navCart">Cart</span> <span class="badge-count" id="cartCount">0</span></button>
       <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
@@ -808,6 +804,13 @@
     </div>
   </div>
 </header>
+
+<div class="acct-menu" id="acctMenu">
+  <a href="javascript:void(0)" onclick="openMyOrders('orders')" data-i18n="acctOrders">📦 My orders</a>
+  <a href="javascript:void(0)" onclick="openMyOrders('addresses')" data-i18n="acctAddresses">🏠 Saved addresses</a>
+  <a href="javascript:void(0)" onclick="openMyOrders('profile')" data-i18n="acctProfile">⚙️ Profile</a>
+  <a href="javascript:void(0)" onclick="doLogout()" data-i18n="acctLogout">↩ Log out</a>
+</div>
 
 <div class="top-cat-strip" id="topCatStrip"></div>
 
