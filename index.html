@@ -514,6 +514,8 @@
   .rail-scroll::-webkit-scrollbar{height:7px;}
   .rail-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
   .rail-scroll .card{min-width:230px;max-width:230px;scroll-snap-align:start;}
+  .rail-bleed{padding-left:16px;padding-right:16px;}
+  @media (max-width:760px){ .rail-bleed{padding-left:14px;padding-right:14px;} }
   .section-tight{padding-top:44px;padding-bottom:44px;}
 
   /* ---------- Product detail page ---------- */
@@ -845,8 +847,8 @@
       <h2 data-i18n="headFeatured">Featured this week</h2>
       <p data-i18n="subFeatured">A short list we personally rate — swipe through.</p>
     </div>
-    <div class="rail-scroll reveal-stagger" id="featuredRail"></div>
   </div>
+  <div class="rail-scroll rail-bleed reveal-stagger" id="featuredRail"></div>
 </section>
 
 <section class="section section-tight" id="bestsellersSection" style="display:none;background:var(--paper-soft);">
@@ -856,8 +858,8 @@
       <h2 data-i18n="headBestsellers">Best sellers</h2>
       <p data-i18n="subBestsellers">What Bahrain keeps adding to cart.</p>
     </div>
-    <div class="rail-scroll reveal-stagger" id="bestsellersRail"></div>
   </div>
+  <div class="rail-scroll rail-bleed reveal-stagger" id="bestsellersRail"></div>
 </section>
 
 <section class="section" id="categories">
