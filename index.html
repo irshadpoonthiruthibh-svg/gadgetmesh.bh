@@ -233,6 +233,7 @@
   @media (max-width:760px){
     .nav-links{display:none;}
     .menu-toggle{display:flex;}
+    .lang-wrap, .acct-wrap{display:none;}
   }
   .cart-btn{
     background:var(--ink); color:#fff; border:none; border-radius:30px;
@@ -303,9 +304,6 @@
   html[dir="rtl"] .card-badges{right:auto;left:10px;}
   html[dir="rtl"] .pdp-back{flex-direction:row-reverse;}
   html[dir="rtl"] .qty-selector{flex-direction:row-reverse;}
-  html[dir="rtl"] .hs-arrow{transform:translateY(-50%) scaleX(-1);}
-  html[dir="rtl"] .hs-arrow.prev{left:auto;right:14px;}
-  html[dir="rtl"] .hs-arrow.next{right:auto;left:14px;}
 
 
   /* ---------- my orders ---------- */
@@ -364,16 +362,17 @@
   .hero-full{position:relative;width:100%;aspect-ratio:2/1;max-height:560px;overflow:hidden;background:var(--paper-soft);}
   .hs-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .7s ease;z-index:1;}
   .hs-slide.active{opacity:1;z-index:2;}
-  .hs-arrow{
-    position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.88);border:none;width:36px;height:36px;border-radius:50%;
-    font-size:19px;font-weight:700;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);color:var(--ink);
+  .hs-next-circle{
+    position:absolute;bottom:16px;right:16px;background:#fff;border:none;width:38px;height:38px;border-radius:50%;
+    font-size:18px;font-weight:700;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);color:var(--ink);
   }
-  .hs-arrow:hover{background:#fff;}
-  .hs-arrow.prev{left:14px;}
-  .hs-arrow.next{right:14px;}
-  .hs-dots{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:8px;z-index:5;}
-  .hs-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.65);cursor:pointer;transition:all .2s ease;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
-  .hs-dots span.active{width:22px;border-radius:6px;background:#fff;}
+  .hs-next-circle:hover{transform:scale(1.06);}
+  html[dir="rtl"] .hs-next-circle{right:auto;left:16px;transform:scaleX(-1);}
+  html[dir="rtl"] .hs-next-circle:hover{transform:scaleX(-1) scale(1.06);}
+  .hs-dots{position:absolute;left:0;right:64px;bottom:14px;display:flex;justify-content:center;gap:7px;z-index:5;}
+  html[dir="rtl"] .hs-dots{right:0;left:64px;}
+  .hs-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.65);cursor:pointer;transition:all .2s ease;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+  .hs-dots span.active{width:18px;border-radius:6px;background:#fff;}
   .hero-tags-row{width:100%;display:flex;justify-content:center;flex-wrap:wrap;gap:12px;padding:16px 16px 20px;}
   .hb-float-tag{
     background:#fff;border-radius:14px;padding:10px 16px;box-shadow:var(--shadow-sm);
@@ -385,7 +384,10 @@
     .hero-announce{padding:12px 16px;}
     .eyebrow-standalone{font-size:10.5px;gap:6px;}
     .hero-full{max-height:300px;}
-    .hs-arrow{width:30px;height:30px;font-size:16px;}
+    .hs-next-circle{width:32px;height:32px;font-size:15px;bottom:12px;right:12px;}
+    html[dir="rtl"] .hs-next-circle{right:auto;left:12px;}
+    .hs-dots{bottom:12px;right:52px;}
+    html[dir="rtl"] .hs-dots{right:0;left:52px;}
     .hb-float-tag{font-size:11px;padding:8px 12px;}
     .hero-tags-row{gap:8px;padding:12px 12px 16px;}
   }
@@ -400,6 +402,34 @@
   .announce-bar.show{display:block;}
   .announce-bar span{display:inline-flex;align-items:center;gap:8px;}
   @media (max-width:640px){ .announce-bar{font-size:11px;padding:8px 14px;} }
+
+  /* ---------- top category strip (Myntra-style, above the banner) ---------- */
+  .top-cat-strip{display:flex;gap:20px;overflow-x:auto;padding:14px 18px;background:#fff;border-bottom:1px solid var(--line);scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .top-cat-strip::-webkit-scrollbar{display:none;}
+  .top-cat-item{display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0;cursor:pointer;width:64px;}
+  .top-cat-item .avatar{
+    width:56px;height:56px;border-radius:50%;background:var(--paper-soft);display:flex;align-items:center;justify-content:center;
+    font-size:24px;border:2px solid var(--blush);transition:transform .18s ease,border-color .18s ease;
+  }
+  .top-cat-item:hover .avatar{transform:scale(1.06);border-color:var(--blush-deep);}
+  .top-cat-item .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;text-align:center;color:var(--ink);white-space:nowrap;}
+
+  /* ---------- fixed bottom mobile nav (Home / deals / Profile) ---------- */
+  .bottom-nav{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:400;background:#fff;border-top:1px solid var(--line);
+    padding:7px 6px max(7px,env(safe-area-inset-bottom));box-shadow:0 -3px 14px rgba(28,28,30,0.06);
+  }
+  .bn-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;
+    font-size:10.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;padding:4px 2px;
+  }
+  .bn-item.active{color:var(--blush-ink);}
+  .bn-item .bn-logo svg{width:22px;height:24px;display:block;}
+  .bn-item .bn-icon{font-size:19px;line-height:1;}
+  @media (max-width:760px){
+    .bottom-nav{display:flex;}
+    body{padding-bottom:60px;}
+  }
 
   .trust-bar{background:var(--ink);color:#fff;padding:16px 0;overflow:hidden;}
   .trust-track{display:flex;gap:56px;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:0.02em;opacity:0.92;
@@ -771,6 +801,8 @@
   </div>
 </header>
 
+<div class="top-cat-strip" id="topCatStrip"></div>
+
 <section class="hero-banner" id="heroBanner">
   <div class="hero-announce reveal">
     <div class="eyebrow-standalone" id="heroEyebrow"><span class="dot"></span> <span data-i18n="heroEyebrowDefault">ORDER ONLINE, GET IT DELIVERED EASILY</span></div>
@@ -779,13 +811,12 @@
     <img class="hs-slide active" id="heroImage" data-slide="0" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png" alt="Featured gadget" fetchpriority="high" onclick="hsSlideClick(0)">
     <img class="hs-slide" id="heroImage2" data-slide="1" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786438662/ChatGPT_Image_Aug_11_2026_11_56_42_AM_ivlkpk.png" alt="Featured gadget" loading="eager" onclick="hsSlideClick(1)">
     <img class="hs-slide" id="heroImage3" data-slide="2" src="https://res.cloudinary.com/cxcbhpbm/image/upload/v1786526557/ChatGPT_Image_Aug_12_2026_12_22_16_PM_x9xtos.png" alt="Featured gadget" loading="eager" onclick="hsSlideClick(2)">
-    <button class="hs-arrow prev" onclick="hsGo(-1)" aria-label="Previous">‹</button>
-    <button class="hs-arrow next" onclick="hsGo(1)" aria-label="Next">›</button>
     <div class="hs-dots" id="hsDots">
       <span class="active" onclick="hsGoTo(0)"></span>
       <span onclick="hsGoTo(1)"></span>
       <span onclick="hsGoTo(2)"></span>
     </div>
+    <button class="hs-next-circle" onclick="hsGo(1)" aria-label="Next">›</button>
   </div>
   <div class="hero-tags-row reveal">
     <div class="hb-float-tag" id="heroBadge1"><span class="pip"></span> In stock - Bahrain</div>
@@ -844,6 +875,9 @@
     <div class="toolbar-inner reveal">
       <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search products…" oninput="renderProducts()">
       <div id="categoryChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      <span id="dealsFilterChip" class="chip active" style="display:none;align-items:center;gap:6px;" onclick="clearDealsFilter()">
+        <span data-i18n="dealsChipLabel">Under 4.900 BHD</span> ✕
+      </span>
     </div>
     <div class="grid reveal-stagger" id="productGrid"></div>
   </div>
@@ -1185,6 +1219,28 @@
   </div>
 </div>
 
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bn-item active" id="bnHomeBtn" onclick="bottomNavHome()">
+    <span class="bn-logo">
+      <svg viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2C10.6 2 3 9.6 3 19c0 12.5 17 25 17 25s17-12.5 17-25C37 9.6 29.4 2 20 2Z" fill="#1C1C1E"/>
+        <path d="M12 14h2.4l1 2h13.2l-2 8H16l-1.6-8H12" stroke="#FFADAD" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="17" cy="27" r="1.6" fill="#FFADAD"/>
+        <circle cx="24" cy="27" r="1.6" fill="#FFADAD"/>
+      </svg>
+    </span>
+    <span data-i18n="bnHome">Home</span>
+  </button>
+  <button class="bn-item" id="bnDealsBtn" onclick="bottomNavDeals()">
+    <span class="bn-icon">🏷️</span>
+    <span data-i18n="bnDeals">Under 4.900</span>
+  </button>
+  <button class="bn-item" id="bnProfileBtn" onclick="onAcctBtnClick()">
+    <span class="bn-icon">👤</span>
+    <span data-i18n="bnProfile">Profile</span>
+  </button>
+</nav>
+
 <script>
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbxBOkF0IhCcZEDTcEN2XkQ89wTaw3S72QpakJgpCyxsRR9Bew6syulKKY4XVhZubUNp5g/exec',
@@ -1216,6 +1272,7 @@ function canReviewProduct(productId){
 }
 if(CUSTOMER) loadCustomerOrdersForReviews();
 let activeCategory = 'All';
+let maxPriceFilter = null;
 let pendingAfterAuth = null; // 'checkout' | null
 let GUEST_MODE = false;
 let PENDING_RESET = { token:null, email:null };
@@ -1238,6 +1295,7 @@ function updateAcctButton(){
   }
 }
 function onAcctBtnClick(){
+  if(typeof setBottomNavActive === 'function') setBottomNavActive('bnProfileBtn');
   if(CUSTOMER){
     document.getElementById('acctMenu').classList.toggle('show');
   } else {
@@ -1728,7 +1786,8 @@ const I18N = {
     maintText:"Don't worry — you can proceed confidently with Cash on Delivery and pay with cash or Benefit at your door when your order arrives.",
     maintCodBtn:'Proceed with Cash on Delivery',
     preparingBenefitpay:'Preparing BenefitPay QR', placingOrder:'Placing order',
-    noProductsLoaded:"We couldn't load products right now — please refresh the page in a moment."
+    noProductsLoaded:"We couldn't load products right now — please refresh the page in a moment.",
+    bnHome:'Home', bnDeals:'Under 4.900', bnProfile:'Profile', dealsChipLabel:'Under 4.900 BHD'
   },
   ar: {
     navShop:'المتجر', navCategories:'الفئات', navReviews:'التقييمات', navAbout:'من نحن', navLogin:'تسجيل الدخول', navCart:'السلة',
@@ -1781,7 +1840,8 @@ const I18N = {
     maintText:'لا تقلق — يمكنك المتابعة بثقة عبر الدفع عند الاستلام، وادفع نقدًا أو عبر Benefit عند وصول طلبك.',
     maintCodBtn:'المتابعة بالدفع عند الاستلام',
     preparingBenefitpay:'جارِ تجهيز BenefitPay QR', placingOrder:'جارِ تأكيد الطلب',
-    noProductsLoaded:'تعذر تحميل المنتجات الآن — يرجى تحديث الصفحة بعد قليل.'
+    noProductsLoaded:'تعذر تحميل المنتجات الآن — يرجى تحديث الصفحة بعد قليل.',
+    bnHome:'الرئيسية', bnDeals:'أقل من 4.900', bnProfile:'حسابي', dealsChipLabel:'أقل من 4.900 د.ب'
   }
 };
 function T(key){
@@ -1877,6 +1937,7 @@ function applyLanguage(lang){
   // else, like a browser's own page-translate feature) can't blank out the rest of the page.
   safeCall(buildCategoryChips);
   safeCall(buildCategoryCards);
+  safeCall(buildTopCategoryStrip);
   safeCall(renderProducts);
   safeCall(renderFeatured);
   safeCall(renderBestsellers);
@@ -1940,6 +2001,7 @@ let productsRouteHandled = false;
 function renderAllProductSections(){
   buildCategoryChips();
   buildCategoryCards();
+  buildTopCategoryStrip();
   renderProducts();
   renderFeatured();
   renderBestsellers();
@@ -2039,14 +2101,29 @@ function buildCategoryCards(){
     </div>
   `).join('');
 }
+function buildTopCategoryStrip(){
+  const strip = document.getElementById('topCatStrip');
+  if(!strip) return;
+  const cats = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
+  if(!cats.length){ strip.innerHTML = ''; return; }
+  strip.innerHTML = cats.map(c => `
+    <div class="top-cat-item" onclick="setCategory('${c.replace(/'/g,"\\'")}'); document.getElementById('shop').scrollIntoView({behavior:'smooth'});">
+      <div class="avatar">${CATEGORY_ICONS[c] || '✨'}</div>
+      <div class="lbl">${catLabel(c)}</div>
+    </div>
+  `).join('');
+}
 function setCategory(c){ activeCategory = c; buildCategoryChips(); renderProducts(); }
 
 function renderProducts(){
   const q = document.getElementById('searchInput').value.toLowerCase();
   const filtered = PRODUCTS.filter(p =>
     (activeCategory === 'All' || p.category === activeCategory) &&
+    (maxPriceFilter === null || p.price <= maxPriceFilter) &&
     (p.name || '').toLowerCase().includes(q)
   );
+  const dealsChip = document.getElementById('dealsFilterChip');
+  if(dealsChip) dealsChip.style.display = (maxPriceFilter !== null) ? 'inline-flex' : 'none';
   document.getElementById('resultCount').textContent = T(filtered.length === 1 ? 'productAvailable' : 'productsAvailable').replace('{n}', filtered.length);
   const grid = document.getElementById('productGrid');
   if(!filtered.length){
@@ -2058,6 +2135,30 @@ function renderProducts(){
   grid.classList.remove('in');
   requestAnimationFrame(() => observeReveal());
   translateProductsIfNeeded(filtered);
+}
+function clearDealsFilter(){
+  maxPriceFilter = null;
+  renderProducts();
+}
+function bottomNavHome(){
+  maxPriceFilter = null;
+  window.scrollTo({top:0, behavior:'smooth'});
+  renderProducts();
+  setBottomNavActive('bnHomeBtn');
+}
+function bottomNavDeals(){
+  maxPriceFilter = 4.900;
+  activeCategory = 'All';
+  document.getElementById('searchInput').value = '';
+  buildCategoryChips();
+  renderProducts();
+  document.getElementById('shop').scrollIntoView({behavior:'smooth'});
+  setBottomNavActive('bnDealsBtn');
+}
+function setBottomNavActive(id){
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(id);
+  if(btn) btn.classList.add('active');
 }
 
 function productCardHtml(p){
@@ -2982,7 +3083,7 @@ function hsUpdateCount(){
     if(dots[i]) dots[i].style.display = has ? 'block' : 'none';
   });
   hsCount = Math.max(count, 1);
-  document.querySelectorAll('.hs-arrow').forEach(a => a.style.display = hsCount > 1 ? 'flex' : 'none');
+  document.querySelectorAll('.hs-next-circle').forEach(a => a.style.display = hsCount > 1 ? 'flex' : 'none');
   const dotsWrap = document.getElementById('hsDots');
   if(dotsWrap) dotsWrap.style.display = hsCount > 1 ? 'flex' : 'none';
   hsIndex = 0; hsRender(); hsRestart();
