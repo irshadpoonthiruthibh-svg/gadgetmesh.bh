@@ -2153,6 +2153,12 @@ function clearDealsFilter(){
 }
 function bottomNavHome(){
   maxPriceFilter = null;
+  if(document.getElementById('pdpOverlay').classList.contains('show')) closeProduct();
+  if(document.getElementById('drawer').classList.contains('show')) closeCart();
+  if(document.getElementById('checkoutOverlay').classList.contains('show')) closeCheckout();
+  if(document.getElementById('ordersOverlay').classList.contains('show')) closeMyOrders();
+  if(document.getElementById('authOverlay').classList.contains('show')) closeAuth();
+  document.getElementById('acctMenu').classList.remove('show');
   window.scrollTo({top:0, behavior:'smooth'});
   renderProducts();
   setBottomNavActive('bnHomeBtn');
