@@ -1212,7 +1212,7 @@
         <input type="text" id="myReferralCode" readonly style="flex:1;font-weight:800;letter-spacing:.05em;text-align:center;padding:12px;border:1.5px dashed var(--blush-ink);border-radius:10px;background:#fff;">
         <button class="btn-ghost" style="padding:12px 16px;" onclick="copyReferralCode()" data-i18n="copyBtn">Copy</button>
       </div>
-      <button class="submit-btn" onclick="shareReferralLink()" data-i18n="shareViaWhatsapp">Share via WhatsApp</button>
+      <button class="submit-btn" onclick="shareReferralLink()" data-i18n="shareBtnLabel">Share</button>
     </div>
 
     <div class="acct-panel" id="tabProfile">
@@ -1461,12 +1461,23 @@ function copyReferralCode(){
   try{ navigator.clipboard.writeText(field.value); }catch(err){ document.execCommand('copy'); }
   alert(T('referralCodeCopied'));
 }
-function shareReferralLink(){
+async function shareReferralLink(){
   const code = document.getElementById('myReferralCode').value;
   if(!code) return;
   const url = `${location.origin}${location.pathname}?ref=${encodeURIComponent(code)}`;
-  const msg = `Join GadgetMesh.bh with my referral code ${code} and we both get 0.200 BHD! ${url}`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  const text = `Join GadgetMesh.bh with my referral code ${code} and we both get 0.200 BHD!`;
+  // Native share sheet (WhatsApp, Messages, Instagram, etc.) on phones/tablets.
+  if(navigator.share){
+    try{
+      await navigator.share({ title: 'GadgetMesh.bh', text, url });
+      return;
+    }catch(err){
+      if(err && err.name === 'AbortError') return; // they closed the share sheet themselves
+      // fall through to the WhatsApp fallback below on any real failure
+    }
+  }
+  // Fallback for desktop browsers without the Web Share API.
+  window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
 }
 async function loadMyOrders(){
   const wrap = document.getElementById('myOrdersList');
@@ -1928,7 +1939,7 @@ const I18N = {
     myAccount:'My account', tabOrders:'Orders', tabAddresses:'Addresses', tabProfile:'Profile', loadingOrders:'Loading your orders…', addAddress:'+ Add a new address',
     tabReferrals:'Wallet', walletBalanceLabel:'GadgetMesh wallet balance', walletUseAtCheckout:'Use it to pay for part of any order at checkout.',
     referralShareTitle:'Invite friends, earn BHD', referralShareSub:'Share your code — when a friend registers with it, you both get 0.200 BHD in your wallet.',
-    copyBtn:'Copy', shareViaWhatsapp:'Share via WhatsApp', referralCodeCopied:'Referral code copied!',
+    copyBtn:'Copy', shareBtnLabel:'Share', referralCodeCopied:'Referral code copied!',
     useWalletLabel:'Use my wallet balance', fromWalletSuffix:'from wallet', walletAvailableSuffix:'BHD available',
     promoCodeLabel:'Have a promo code?', phPromoCode:'Enter code', applyBtn:'Apply', removeBtn:'Remove',
     promoDiscountSuffix:'off', promoEnterCode:'Please enter a code.', promoLoginRequired:'Please log in to your account to use a promo code.',
@@ -1991,7 +2002,7 @@ const I18N = {
     myAccount:'حسابي', tabOrders:'الطلبات', tabAddresses:'العناوين', tabProfile:'الملف الشخصي', loadingOrders:'جارِ تحميل طلباتك…', addAddress:'+ إضافة عنوان جديد',
     tabReferrals:'المحفظة', walletBalanceLabel:'رصيد محفظة GadgetMesh', walletUseAtCheckout:'استخدمه لدفع جزء من أي طلب عند الدفع.',
     referralShareTitle:'ادعُ أصدقاءك واربح دنانير', referralShareSub:'شارك رمزك — عندما يسجّل صديق باستخدامه، يحصل كلاكما على 0.200 دينار في محفظتكما.',
-    copyBtn:'نسخ', shareViaWhatsapp:'مشاركة عبر واتساب', referralCodeCopied:'تم نسخ رمز الإحالة!',
+    copyBtn:'نسخ', shareBtnLabel:'مشاركة', referralCodeCopied:'تم نسخ رمز الإحالة!',
     useWalletLabel:'استخدام رصيد محفظتي', fromWalletSuffix:'من المحفظة', walletAvailableSuffix:'دينار متاح',
     promoCodeLabel:'لديك رمز ترويجي؟', phPromoCode:'أدخل الرمز', applyBtn:'تطبيق', removeBtn:'إزالة',
     promoDiscountSuffix:'خصم', promoEnterCode:'يرجى إدخال رمز.', promoLoginRequired:'يرجى تسجيل الدخول إلى حسابك لاستخدام رمز ترويجي.',
