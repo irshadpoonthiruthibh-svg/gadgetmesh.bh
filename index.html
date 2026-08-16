@@ -2078,6 +2078,56 @@ async function loadProducts(){
   }
   // If fresh fetches failed but we had a cache, the cached catalogue simply
   // stays on screen — no error shown, since the customer can still browse.
+
+  // The static file above is only synced hourly, so stock counts an admin
+  // just changed could be up to an hour stale. Always follow up with one
+  // direct call to the live backend so prices/stock/availability catch up
+  // immediately, without waiting on the GitHub sync.
+  refreshLiveStock();
+}
+
+let liveStockPollTimer = null;
+async function refreshLiveStock(){
+  try{
+    const res = await fetch(`${CONFIG.API_URL}?action=listProducts&_=${Date.now()}`);
+    const data = await res.json();
+    const list = data.products || [];
+    if(!list.length) return;
+    PRODUCTS = list.map(normalizeProduct);
+    writeProductsCache(list);
+    renderAllProductSections();
+    // Keep an open product page's stock badge/buttons in sync too.
+    if(PDP_PRODUCT){
+      const updated = PRODUCTS.find(p => p.id === PDP_PRODUCT.id);
+      if(updated) refreshPdpStockDisplay(updated);
+    }
+  }catch(err){ /* live backend unreachable right now — cached/static data stands */ }
+
+  // Keep polling quietly while the tab stays open, so stock an admin
+  // changes mid-visit (e.g. someone else just bought the last unit)
+  // updates without the customer needing to refresh the page.
+  if(liveStockPollTimer) clearTimeout(liveStockPollTimer);
+  liveStockPollTimer = setTimeout(refreshLiveStock, 60000);
+}
+
+// Re-applies the latest stock number to an already-open product page,
+// without rebuilding the whole PDP (keeps gallery/scroll position intact).
+function refreshPdpStockDisplay(p){
+  PDP_PRODUCT = p;
+  const stockEl = document.getElementById('pdpStock');
+  if(!stockEl) return;
+  if(p.stock > 5){ stockEl.textContent = T('inStock'); stockEl.className = 'pdp-stock in'; }
+  else if(p.stock > 0){ stockEl.textContent = T('onlyLeftStock').replace('{n}', p.stock); stockEl.className = 'pdp-stock low blink-stock'; }
+  else{ stockEl.textContent = T('outOfStock'); stockEl.className = 'pdp-stock low'; }
+  const addBtn = document.getElementById('pdpAddBtn');
+  const buyBtn = document.getElementById('pdpBuyBtn');
+  if(addBtn) addBtn.disabled = p.stock <= 0;
+  if(buyBtn) buyBtn.disabled = p.stock <= 0;
+  if(PDP_QTY > p.stock && p.stock > 0){
+    PDP_QTY = p.stock;
+    const qtyEl = document.getElementById('pdpQty');
+    if(qtyEl) qtyEl.textContent = PDP_QTY;
+  }
 }
 
 
