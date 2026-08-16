@@ -515,6 +515,43 @@
   @keyframes gmStockBlink{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
   .blink-stock{animation:gmStockBlink 1.2s ease-in-out infinite;}
   @media (prefers-reduced-motion: reduce){ .blink-stock{animation:none!important;} }
+
+  /* ---------- Checkout promo banner: 3:1 cartoon strip advertising active discount codes ---------- */
+  .promo-banner{
+    position:relative; width:100%; aspect-ratio:3/1; border-radius:14px; overflow:hidden; margin-bottom:16px;
+    background:linear-gradient(120deg,#FF8A65,#FF6F61 45%,#FFB199); cursor:pointer; display:none;
+    box-shadow:0 6px 18px rgba(255,111,97,0.28);
+  }
+  .promo-banner.show{display:block;}
+  .promo-banner .shimmer{
+    position:absolute; inset:0; background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.35) 45%,transparent 60%);
+    background-size:250% 100%; animation:promoShimmer 3.2s ease-in-out infinite;
+  }
+  @keyframes promoShimmer{ 0%{background-position:150% 0;} 100%{background-position:-150% 0;} }
+  .promo-banner .spark{ position:absolute; font-size:14px; animation:promoTwinkle 1.8s ease-in-out infinite; }
+  .promo-banner .spark.s1{ top:12%; left:14%; animation-delay:0s; }
+  .promo-banner .spark.s2{ top:65%; left:24%; animation-delay:.4s; font-size:10px; }
+  .promo-banner .spark.s3{ top:20%; left:82%; animation-delay:.8s; }
+  .promo-banner .spark.s4{ top:70%; left:88%; animation-delay:1.2s; font-size:11px; }
+  @keyframes promoTwinkle{ 0%,100%{opacity:0.25; transform:scale(0.8) rotate(0deg);} 50%{opacity:1; transform:scale(1.15) rotate(20deg);} }
+  .promo-banner .gift{
+    position:absolute; left:6%; top:50%; transform:translateY(-50%); font-size:clamp(26px,7vw,42px);
+    animation:promoBounce 1.6s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.18));
+  }
+  @keyframes promoBounce{ 0%,100%{transform:translateY(-50%) rotate(-6deg);} 50%{transform:translateY(-62%) rotate(6deg);} }
+  .promo-banner .txt{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:4px 20% 4px 24%; color:#fff;
+  }
+  .promo-banner .txt .headline{ font-weight:800; font-size:clamp(12px,3.2vw,17px); line-height:1.15; text-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .promo-banner .txt .sub{ font-weight:600; font-size:clamp(9.5px,2.3vw,12px); opacity:0.95; margin-top:3px; }
+  .promo-banner .txt .code-pill{
+    display:inline-block; margin-top:5px; background:rgba(255,255,255,0.92); color:#B23B2E; font-weight:800;
+    font-size:clamp(9.5px,2.2vw,11.5px); letter-spacing:0.04em; padding:2px 10px; border-radius:20px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .promo-banner .shimmer, .promo-banner .spark, .promo-banner .gift{ animation:none!important; }
+  }
   .card.out-of-stock{cursor:default;}
   .card.out-of-stock .imgwrap img{filter:grayscale(70%);opacity:0.55;}
   .add-btn:disabled{background:#ccc;color:#888;cursor:not-allowed;}
@@ -988,6 +1025,35 @@
       </div>
       <div class="field"><label data-i18n="fieldArea">Area</label><input type="text" id="custArea" data-i18n-placeholder="phArea" placeholder="e.g. Manama, Riffa, Muharraq…" oninput="onCheckoutFieldsEdited()"></div>
       <div class="save-addr-check" id="saveAddrCheckWrap" style="display:none;"><input type="checkbox" id="saveThisAddress"><label for="saveThisAddress" data-i18n="saveAddrLabel">Save this address for next time</label></div>
+      <div class="promo-banner" id="promoBanner" onclick="onPromoBannerClick()">
+        <div class="shimmer"></div>
+        <span class="spark s1">✨</span><span class="spark s2">⭐</span><span class="spark s3">✨</span><span class="spark s4">⭐</span>
+        <span class="gift">🎁</span>
+        <div class="txt">
+          <div class="headline" id="promoBannerHeadline"></div>
+          <div class="sub" id="promoBannerSub"></div>
+          <span class="code-pill" id="promoBannerCode"></span>
+        </div>
+      </div>
+      <div class="field" id="promoCodeWrap">
+        <label data-i18n="promoCodeLabel">Have a promo code?</label>
+        <div style="display:flex;gap:8px;" id="promoInputRow">
+          <input type="text" id="promoCodeInput" data-i18n-placeholder="phPromoCode" placeholder="Enter code" style="flex:1;text-transform:uppercase;">
+          <button type="button" class="btn-ghost" style="padding:0 18px;white-space:nowrap;" onclick="applyPromoCode()" id="applyPromoBtn" data-i18n="applyBtn">Apply</button>
+        </div>
+        <div id="promoAppliedRow" style="display:none;align-items:center;justify-content:space-between;background:#F3FBF3;border:1px solid #BFE6BF;border-radius:10px;padding:10px 14px;margin-top:8px;">
+          <span id="promoAppliedText" style="font-size:13px;font-weight:700;color:#2C6B2F;"></span>
+          <button type="button" onclick="removePromoCode()" style="background:none;border:none;color:#B23B2E;font-weight:700;font-size:12.5px;cursor:pointer;" data-i18n="removeBtn">Remove</button>
+        </div>
+        <p id="promoError" style="color:#B23B2E;font-size:12.5px;margin:6px 0 0;"></p>
+      </div>
+      <div class="field" id="walletUseWrap" style="display:none;background:#FFF8F5;border:1px solid var(--line);border-radius:10px;padding:12px 14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;cursor:pointer;margin:0;">
+          <input type="checkbox" id="useWalletCheckbox" onchange="updateCheckoutTotalDisplay()">
+          <span data-i18n="useWalletLabel">Use my wallet balance</span>
+          <span id="walletAvailableLabel" style="color:var(--ink-soft);font-weight:500;font-size:12.5px;"></span>
+        </label>
+      </div>
       <div class="field">
         <label data-i18n="fieldPayment">Payment method</label>
         <div class="pay-options" id="payOptions"></div>
@@ -1088,6 +1154,7 @@
       <div class="field"><label data-i18n="fieldEmail">Email</label><input type="email" id="regEmail" placeholder="you@email.com"></div>
       <div class="field"><label data-i18n="fieldMobileOptional">Mobile number <span style="font-weight:500;color:var(--ink-soft);">(optional)</span></label><input type="text" id="regPhone" placeholder="+973 3xxx xxxx"></div>
       <div class="field"><label data-i18n="fieldPasswordMin">Password <span style="font-weight:500;color:var(--ink-soft);">(min 6 characters)</span></label><input type="password" id="regPassword" placeholder="••••••••"></div>
+      <div class="field"><label data-i18n="fieldReferralOptional">Referral code <span style="font-weight:500;color:var(--ink-soft);">(optional)</span></label><input type="text" id="regReferralCode" data-i18n-placeholder="phReferralCode" placeholder="e.g. FATIF3K9" style="text-transform:uppercase;"></div>
       <p class="auth-error" id="regError"></p>
       <button class="submit-btn" onclick="doRegister()" data-i18n="createAccountBtn">Create account</button>
       <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);"><span data-i18n="alreadyHaveAccount">Already have an account?</span> <a href="javascript:void(0)" onclick="showAuthPanel('login')" style="color:var(--blush-ink);font-weight:700;" data-i18n="loginBtn">Log in</a></p>
@@ -1103,6 +1170,7 @@
     <div class="acct-tabs">
       <button class="acct-tab" id="tabBtnOrders" onclick="switchAcctTab('orders')" data-i18n="tabOrders">Orders</button>
       <button class="acct-tab" id="tabBtnAddresses" onclick="switchAcctTab('addresses')" data-i18n="tabAddresses">Addresses</button>
+      <button class="acct-tab" id="tabBtnReferrals" onclick="switchAcctTab('referrals')" data-i18n="tabReferrals">Wallet</button>
       <button class="acct-tab" id="tabBtnProfile" onclick="switchAcctTab('profile')" data-i18n="tabProfile">Profile</button>
     </div>
 
@@ -1130,6 +1198,21 @@
         <button class="submit-btn" onclick="saveAddress()">Save address</button>
         <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="closeAddressForm()">Cancel</button>
       </div>
+    </div>
+
+    <div class="acct-panel" id="tabReferrals">
+      <div style="background:linear-gradient(120deg,#FFF3F3,var(--paper-soft));border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;">
+        <p style="font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blush-ink);margin:0 0 6px;" data-i18n="walletBalanceLabel">GadgetMesh wallet balance</p>
+        <p style="font-size:28px;font-weight:800;margin:0;" id="walletBalanceDisplay">0.000 BHD</p>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin:6px 0 0;" data-i18n="walletUseAtCheckout">Use it to pay for part of any order at checkout.</p>
+      </div>
+      <p style="font-size:13.5px;font-weight:700;margin:0 0 6px;" data-i18n="referralShareTitle">Invite friends, earn BHD</p>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="referralShareSub">Share your code — when a friend registers with it, you both get 0.200 BHD in your wallet.</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <input type="text" id="myReferralCode" readonly style="flex:1;font-weight:800;letter-spacing:.05em;text-align:center;padding:12px;border:1.5px dashed var(--blush-ink);border-radius:10px;background:#fff;">
+        <button class="btn-ghost" style="padding:12px 16px;" onclick="copyReferralCode()" data-i18n="copyBtn">Copy</button>
+      </div>
+      <button class="submit-btn" onclick="shareReferralLink()" data-i18n="shareViaWhatsapp">Share via WhatsApp</button>
     </div>
 
     <div class="acct-panel" id="tabProfile">
@@ -1346,13 +1429,44 @@ function openMyOrders(tab){
 }
 function closeMyOrders(){ document.getElementById('ordersOverlay').classList.remove('show'); }
 function switchAcctTab(tab){
-  ['orders','addresses','profile'].forEach(t => {
+  ['orders','addresses','referrals','profile'].forEach(t => {
     document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
     document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
   });
   if(tab === 'orders') loadMyOrders();
   if(tab === 'addresses') loadAddresses();
+  if(tab === 'referrals') loadWalletTab();
   if(tab === 'profile') loadProfile();
+}
+async function loadWalletTab(){
+  if(!CUSTOMER) return;
+  document.getElementById('myReferralCode').value = CUSTOMER.referralCode || '';
+  document.getElementById('walletBalanceDisplay').textContent = Number(CUSTOMER.walletBalance || 0).toFixed(3) + ' BHD';
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'getCustomerWallet', email: CUSTOMER.email }) });
+    const data = await res.json();
+    if(data.ok){
+      CUSTOMER.walletBalance = data.walletBalance;
+      CUSTOMER.referralCode = data.referralCode || CUSTOMER.referralCode;
+      localStorage.setItem('gm_customer', JSON.stringify(CUSTOMER));
+      document.getElementById('walletBalanceDisplay').textContent = Number(data.walletBalance || 0).toFixed(3) + ' BHD';
+      document.getElementById('myReferralCode').value = data.referralCode || '';
+    }
+  }catch(err){ /* keep showing the last known balance */ }
+}
+function copyReferralCode(){
+  const field = document.getElementById('myReferralCode');
+  field.select();
+  field.setSelectionRange(0, 99999);
+  try{ navigator.clipboard.writeText(field.value); }catch(err){ document.execCommand('copy'); }
+  alert(T('referralCodeCopied'));
+}
+function shareReferralLink(){
+  const code = document.getElementById('myReferralCode').value;
+  if(!code) return;
+  const url = `${location.origin}${location.pathname}?ref=${encodeURIComponent(code)}`;
+  const msg = `Join GadgetMesh.bh with my referral code ${code} and we both get 0.200 BHD! ${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 async function loadMyOrders(){
   const wrap = document.getElementById('myOrdersList');
@@ -1646,6 +1760,11 @@ function showAuthPanel(panel){
   document.getElementById('authResetPanel').style.display = panel === 'reset' ? 'block' : 'none';
   document.getElementById('loginError').textContent = '';
   document.getElementById('regError').textContent = '';
+  if(panel === 'register'){
+    const refField = document.getElementById('regReferralCode');
+    const pending = localStorage.getItem('gm_pending_referral');
+    if(refField && !refField.value && pending) refField.value = pending;
+  }
 }
 function openForgotPassword(){
   document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
@@ -1699,15 +1818,24 @@ async function doRegister(){
   const email = document.getElementById('regEmail').value.trim();
   const phone = document.getElementById('regPhone').value.trim();
   const password = document.getElementById('regPassword').value;
+  const referralCode = document.getElementById('regReferralCode').value.trim().toUpperCase();
   const errEl = document.getElementById('regError');
   errEl.textContent = '';
   if(!name || !email || !password){ errEl.textContent = 'Name, email and password are required.'; return; }
   if(password.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  let ip = '';
   try{
-    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'registerCustomer', name, email, phone, password }) });
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipRes.json();
+    ip = ipData.ip || '';
+  }catch(err){ /* best-effort only — phone number is the real referral safeguard */ }
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'registerCustomer', name, email, phone, password, referralCode, ip }) });
     const data = await res.json();
     if(!data.ok){ errEl.textContent = data.error || 'Could not create your account.'; return; }
+    localStorage.removeItem('gm_pending_referral');
     onAuthSuccess(data.customer);
+    if(data.referralMessage) setTimeout(() => alert(data.referralMessage), 300);
   }catch(err){ errEl.textContent = 'Could not reach the server. Check your connection and try again.'; }
 }
 function onAuthSuccess(customer){
@@ -1729,6 +1857,15 @@ function onAuthSuccess(customer){
   });
 }
 updateAcctButton();
+
+/* Detect a referral link (?ref=CODE) and remember it so the registration
+   form's referral field gets pre-filled whenever the person signs up,
+   even if that happens several page views later. */
+(function checkForReferralLink(){
+  const params = new URLSearchParams(location.search);
+  const ref = params.get('ref');
+  if(ref) localStorage.setItem('gm_pending_referral', ref.trim().toUpperCase());
+})();
 
 /* Detect a password-reset link (?resetToken=...&resetEmail=...) and open
    the reset panel automatically, then clean the URL so refreshing doesn't
@@ -1787,7 +1924,15 @@ const I18N = {
     chooseNewPwTitle:'Choose a new password', resettingPwFor:'Resetting the password for', fieldNewPassword:'New password (min 6 characters)', setNewPwBtn:'Set new password',
     registerTitle:'Create your account', registerSub:'Takes 20 seconds — just enough to fill your order in one tap next time.',
     fieldMobileOptional:'Mobile number (optional)', fieldPasswordMin:'Password (min 6 characters)', createAccountBtn:'Create account', alreadyHaveAccount:'Already have an account?',
+    fieldReferralOptional:'Referral code (optional)', phReferralCode:'e.g. FATIF3K9',
     myAccount:'My account', tabOrders:'Orders', tabAddresses:'Addresses', tabProfile:'Profile', loadingOrders:'Loading your orders…', addAddress:'+ Add a new address',
+    tabReferrals:'Wallet', walletBalanceLabel:'GadgetMesh wallet balance', walletUseAtCheckout:'Use it to pay for part of any order at checkout.',
+    referralShareTitle:'Invite friends, earn BHD', referralShareSub:'Share your code — when a friend registers with it, you both get 0.200 BHD in your wallet.',
+    copyBtn:'Copy', shareViaWhatsapp:'Share via WhatsApp', referralCodeCopied:'Referral code copied!',
+    useWalletLabel:'Use my wallet balance', fromWalletSuffix:'from wallet', walletAvailableSuffix:'BHD available',
+    promoCodeLabel:'Have a promo code?', phPromoCode:'Enter code', applyBtn:'Apply', removeBtn:'Remove',
+    promoDiscountSuffix:'off', promoEnterCode:'Please enter a code.', promoLoginRequired:'Please log in to your account to use a promo code.',
+    promoInvalid:'This code is not valid.', promoNetworkError:'Could not reach the server. Please try again.',
     trustCod:'Cash on delivery', trustBenefitpay:'BenefitPay accepted', trustBhd:'Priced in BHD', trustFreeDelivery:'Free delivery all over Bahrain', trustSecure:'Secure checkout',
     addBtn:'Add', freeDeliveryBadge:'Free Delivery in Bahrain', chipAll:'All', catGeneral:'General',
     saleOff:'off', featuredBadge:'⭐ Featured', bestsellerBadge:'🔥 Best seller', onlyLeft:'Only {n} left', noProductsMatch:'No products match yet — try another search.',
@@ -1842,7 +1987,15 @@ const I18N = {
     chooseNewPwTitle:'اختر كلمة مرور جديدة', resettingPwFor:'إعادة تعيين كلمة المرور لـ', fieldNewPassword:'كلمة المرور الجديدة (6 أحرف على الأقل)', setNewPwBtn:'تعيين كلمة المرور الجديدة',
     registerTitle:'إنشاء حسابك', registerSub:'تستغرق 20 ثانية فقط — لملء طلبك بضغطة واحدة في المرة القادمة.',
     fieldMobileOptional:'رقم الجوال (اختياري)', fieldPasswordMin:'كلمة المرور (6 أحرف على الأقل)', createAccountBtn:'إنشاء الحساب', alreadyHaveAccount:'لديك حساب بالفعل؟',
+    fieldReferralOptional:'رمز الإحالة (اختياري)', phReferralCode:'مثال: FATIF3K9',
     myAccount:'حسابي', tabOrders:'الطلبات', tabAddresses:'العناوين', tabProfile:'الملف الشخصي', loadingOrders:'جارِ تحميل طلباتك…', addAddress:'+ إضافة عنوان جديد',
+    tabReferrals:'المحفظة', walletBalanceLabel:'رصيد محفظة GadgetMesh', walletUseAtCheckout:'استخدمه لدفع جزء من أي طلب عند الدفع.',
+    referralShareTitle:'ادعُ أصدقاءك واربح دنانير', referralShareSub:'شارك رمزك — عندما يسجّل صديق باستخدامه، يحصل كلاكما على 0.200 دينار في محفظتكما.',
+    copyBtn:'نسخ', shareViaWhatsapp:'مشاركة عبر واتساب', referralCodeCopied:'تم نسخ رمز الإحالة!',
+    useWalletLabel:'استخدام رصيد محفظتي', fromWalletSuffix:'من المحفظة', walletAvailableSuffix:'دينار متاح',
+    promoCodeLabel:'لديك رمز ترويجي؟', phPromoCode:'أدخل الرمز', applyBtn:'تطبيق', removeBtn:'إزالة',
+    promoDiscountSuffix:'خصم', promoEnterCode:'يرجى إدخال رمز.', promoLoginRequired:'يرجى تسجيل الدخول إلى حسابك لاستخدام رمز ترويجي.',
+    promoInvalid:'هذا الرمز غير صالح.', promoNetworkError:'تعذر الوصول إلى الخادم. يرجى المحاولة مرة أخرى.',
     trustCod:'الدفع عند الاستلام', trustBenefitpay:'يقبل BenefitPay', trustBhd:'الأسعار بالدينار البحريني', trustFreeDelivery:'توصيل مجاني لجميع مناطق البحرين', trustSecure:'دفع آمن',
     addBtn:'أضف', freeDeliveryBadge:'توصيل مجاني في البحرين', chipAll:'الكل', catGeneral:'عام',
     saleOff:'خصم', featuredBadge:'⭐ مميز', bestsellerBadge:'🔥 الأكثر مبيعًا', onlyLeft:'{n} فقط متبقي', noProductsMatch:'لا توجد منتجات مطابقة — جرّب بحثًا آخر.',
@@ -2370,6 +2523,7 @@ function saveCart(){
   badge.classList.remove('pulse'); void badge.offsetWidth; badge.classList.add('pulse');
 }
 function cartTotal(){ return CART.reduce((s,i) => s + i.price*i.qty, 0); }
+function round3Local_(n){ return Math.round(Number(n||0) * 1000) / 1000; }
 
 /* ================= Product detail page ================= */
 let PDP_PRODUCT = null;
@@ -2770,6 +2924,119 @@ function updateSubmitBtnLabel(){
   const label = document.getElementById('submitBtnLabel');
   if(!label) return;
   label.textContent = method === 'benefitpay' ? T('placeOrderBtnBenefitpay') : T('placeOrderBtn');
+  updateCheckoutTotalDisplay();
+}
+let APPLIED_PROMO = null; // { code, discount }
+
+function getPromoDiscountAmount(){
+  return APPLIED_PROMO ? Number(APPLIED_PROMO.discount || 0) : 0;
+}
+function getWalletAmountToUse(){
+  if(!CUSTOMER) return 0;
+  const checkbox = document.getElementById('useWalletCheckbox');
+  if(!checkbox || !checkbox.checked) return 0;
+  const afterPromo = Math.max(0, cartTotal() - getPromoDiscountAmount());
+  return Math.max(0, Math.min(Number(CUSTOMER.walletBalance || 0), afterPromo));
+}
+function updateCheckoutTotalDisplay(){
+  const promoDiscount = getPromoDiscountAmount();
+  const walletUsed = getWalletAmountToUse();
+  const payable = Math.max(0, cartTotal() - promoDiscount - walletUsed);
+  const modalTotalEl = document.getElementById('modalTotal');
+  if(!modalTotalEl) return;
+  const parts = [];
+  if(promoDiscount > 0) parts.push(`${promoDiscount.toFixed(3)} ${T('promoDiscountSuffix')}`);
+  if(walletUsed > 0) parts.push(`${walletUsed.toFixed(3)} ${T('fromWalletSuffix')}`);
+  modalTotalEl.textContent = parts.length
+    ? `${payable.toFixed(3)} BHD (${parts.join(' + ')})`
+    : `${cartTotal().toFixed(3)} BHD`;
+}
+async function applyPromoCode(){
+  const input = document.getElementById('promoCodeInput');
+  const errEl = document.getElementById('promoError');
+  const code = input.value.trim().toUpperCase();
+  errEl.textContent = '';
+  if(!code) { errEl.textContent = T('promoEnterCode'); return; }
+  if(!CUSTOMER){ errEl.textContent = T('promoLoginRequired'); return; }
+  const btn = document.getElementById('applyPromoBtn');
+  btn.disabled = true;
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'validatePromoCode', code, customerEmail: CUSTOMER.email, cartTotal: cartTotal() }) });
+    const data = await res.json();
+    if(!data.ok){ errEl.textContent = data.error || T('promoInvalid'); return; }
+    APPLIED_PROMO = { code: data.code, discount: data.discount };
+    document.getElementById('promoInputRow').style.display = 'none';
+    document.getElementById('promoAppliedRow').style.display = 'flex';
+    document.getElementById('promoAppliedText').textContent = `${data.code} — ${Number(data.discount).toFixed(3)} BHD ${T('promoDiscountSuffix')}`;
+    document.getElementById('promoBanner').classList.remove('show');
+    updateCheckoutTotalDisplay();
+  }catch(err){ errEl.textContent = T('promoNetworkError'); }
+  finally{ btn.disabled = false; }
+}
+function removePromoCode(){
+  APPLIED_PROMO = null;
+  document.getElementById('promoCodeInput').value = '';
+  document.getElementById('promoError').textContent = '';
+  document.getElementById('promoInputRow').style.display = 'flex';
+  document.getElementById('promoAppliedRow').style.display = 'none';
+  renderPromoBanner();
+  updateCheckoutTotalDisplay();
+}
+let BEST_PROMO_OFFER = null;
+async function loadCheckoutPromoBanner(){
+  const banner = document.getElementById('promoBanner');
+  banner.classList.remove('show');
+  BEST_PROMO_OFFER = null;
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listActivePromoCodes' }) });
+    const data = await res.json();
+    const codes = data.promoCodes || [];
+    if(!codes.length) return;
+    // Feature the offer with the highest minimum spend — usually the
+    // headline "spend X, get Y off" promotion admins want customers to see.
+    BEST_PROMO_OFFER = codes.slice().sort((a,b) => Number(b.minOrderValue||0) - Number(a.minOrderValue||0))[0];
+    renderPromoBanner();
+  }catch(err){ /* no banner shown if the backend is unreachable — checkout still works */ }
+}
+function renderPromoBanner(){
+  if(!BEST_PROMO_OFFER || !CUSTOMER){
+    document.getElementById('promoBanner').classList.remove('show');
+    return;
+  }
+  const offer = BEST_PROMO_OFFER;
+  const minOrder = Number(offer.minOrderValue || 0);
+  const isPercent = offer.discountType === 'percent';
+  const discountLabel = isPercent ? `${Number(offer.discountValue)}%` : `${Number(offer.discountValue).toFixed(3)} BHD`;
+  const total = cartTotal();
+  const remaining = Math.max(0, minOrder - total);
+
+  const headlineEl = document.getElementById('promoBannerHeadline');
+  const subEl = document.getElementById('promoBannerSub');
+  const codeEl = document.getElementById('promoBannerCode');
+
+  if(minOrder > 0 && remaining > 0){
+    headlineEl.textContent = `Spend ${minOrder.toFixed(3)} BHD, get ${discountLabel} off!`;
+    subEl.textContent = `Add ${remaining.toFixed(3)} BHD more to unlock it`;
+  } else if(minOrder > 0){
+    headlineEl.textContent = `🎉 You've unlocked ${discountLabel} off!`;
+    subEl.textContent = `Tap to apply your discount`;
+  } else {
+    headlineEl.textContent = `Get ${discountLabel} off your order!`;
+    subEl.textContent = `Tap to apply this code`;
+  }
+  codeEl.textContent = offer.code;
+  document.getElementById('promoBanner').classList.add('show');
+}
+function onPromoBannerClick(){
+  if(!BEST_PROMO_OFFER) return;
+  const input = document.getElementById('promoCodeInput');
+  input.value = BEST_PROMO_OFFER.code;
+  const minOrder = Number(BEST_PROMO_OFFER.minOrderValue || 0);
+  if(cartTotal() >= minOrder){
+    applyPromoCode();
+  } else {
+    input.focus();
+  }
 }
 function openPaymentMaint(methodId){
   document.getElementById('paymentMaintOverlay').classList.add('show');
@@ -2813,8 +3080,46 @@ function openCheckout(){
   checkoutSelectedAddressId = null;
   document.getElementById('saveAddrCheckWrap').style.display = 'none';
   document.getElementById('checkoutOverlay').classList.add('show');
+  document.getElementById('useWalletCheckbox').checked = false;
+  APPLIED_PROMO = null;
+  document.getElementById('promoCodeInput').value = '';
+  document.getElementById('promoError').textContent = '';
+  document.getElementById('promoAppliedRow').style.display = 'none';
+  document.getElementById('promoInputRow').style.display = 'flex';
+  if(!CUSTOMER){
+    document.getElementById('promoCodeWrap').style.display = 'none';
+  } else {
+    document.getElementById('promoCodeWrap').style.display = 'block';
+  }
+  loadCheckoutPromoBanner();
+  if(CUSTOMER && Number(CUSTOMER.walletBalance) > 0){
+    document.getElementById('walletUseWrap').style.display = 'block';
+    document.getElementById('walletAvailableLabel').textContent = `(${Number(CUSTOMER.walletBalance).toFixed(3)} ${T('walletAvailableSuffix')})`;
+  } else {
+    document.getElementById('walletUseWrap').style.display = 'none';
+  }
+  updateCheckoutTotalDisplay();
   if(CUSTOMER) loadCheckoutAddresses();
   else document.getElementById('savedAddrPicker').style.display = 'none';
+  // Refresh the wallet balance quietly in case it changed since login (e.g.
+  // a friend just registered with this customer's referral code).
+  if(CUSTOMER){
+    fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'getCustomerWallet', email: CUSTOMER.email }) })
+      .then(r => r.json()).then(data => {
+        if(data.ok){
+          CUSTOMER.walletBalance = data.walletBalance;
+          localStorage.setItem('gm_customer', JSON.stringify(CUSTOMER));
+          if(Number(CUSTOMER.walletBalance) > 0){
+            document.getElementById('walletUseWrap').style.display = 'block';
+            document.getElementById('walletAvailableLabel').textContent = `(${Number(CUSTOMER.walletBalance).toFixed(3)} ${T('walletAvailableSuffix')})`;
+          } else {
+            document.getElementById('walletUseWrap').style.display = 'none';
+            document.getElementById('useWalletCheckbox').checked = false;
+          }
+          updateCheckoutTotalDisplay();
+        }
+      }).catch(() => {});
+  }
 }
 function clearCheckoutAddressFields(){
   ['custFlat','custBuilding','custRoad','custBlock','custArea'].forEach(id => document.getElementById(id).value = '');
@@ -2929,9 +3234,14 @@ async function placeOrder(){
       }catch(err){ /* saving the address is a convenience — don't block the order over it */ }
     }
 
+    const promoDiscountAmount = getPromoDiscountAmount();
+    const walletAmountUsed = getWalletAmountToUse();
+    const payableTotal = Math.max(0, cartTotal() - promoDiscountAmount - walletAmountUsed);
+
     const orderPayload = {
       action:'placeOrder', customerName:name, customerEmail: email, phone, address,
-      items: CART, total: cartTotal(), paymentMethod: method
+      items: CART, total: cartTotal(), paymentMethod: method, walletAmountUsed,
+      promoCode: APPLIED_PROMO ? APPLIED_PROMO.code : ''
     };
 
     if(method === 'benefitpay'){
@@ -2941,12 +3251,14 @@ async function placeOrder(){
       pendingOrderId = 'ORD-' + Date.now();
       document.getElementById('checkoutStep1').style.display='none';
       document.getElementById('checkoutStep2').style.display='none';
-      showBenefitPayQr(pendingOrderId, cartTotal());
+      showBenefitPayQr(pendingOrderId, payableTotal);
       return;
     }
 
     // Cash on Delivery — place the order right away as before.
     let orderId = 'ORD-' + Date.now();
+    let actualWalletUsed = walletAmountUsed;
+    let actualPromoDiscount = promoDiscountAmount;
     try{
       const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(orderPayload) });
       const data = await res.json();
@@ -2956,15 +3268,28 @@ async function placeOrder(){
         return;
       }
       if(data && data.orderId) orderId = data.orderId;
+      if(data && typeof data.walletUsed === 'number') actualWalletUsed = data.walletUsed;
+      if(data && typeof data.promoDiscount === 'number') actualPromoDiscount = data.promoDiscount;
     }catch(err){ /* backend not connected yet — still show confirmation */ }
 
     document.getElementById('checkoutStep1').style.display='none';
     document.getElementById('checkoutStepQR').style.display='none';
     document.getElementById('checkoutStep2').style.display='block';
     document.getElementById('confirmTitle').textContent = 'Order confirmed';
-    document.getElementById('confirmText').textContent = `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
+    const cashDue = Math.max(0, cartTotal() - actualWalletUsed - actualPromoDiscount);
+    const savingsBits = [];
+    if(actualPromoDiscount > 0) savingsBits.push(`${actualPromoDiscount.toFixed(3)} BHD off with your promo code`);
+    if(actualWalletUsed > 0) savingsBits.push(`${actualWalletUsed.toFixed(3)} BHD paid from your GadgetMesh wallet`);
+    document.getElementById('confirmText').textContent = savingsBits.length
+      ? `Order ${orderId} — ${savingsBits.join(', ')}, ${cashDue.toFixed(3)} BHD to pay in cash on delivery. We'll contact you to confirm delivery timing.`
+      : `Order ${orderId} for ${cartTotal().toFixed(3)} BHD will be paid in cash on delivery. We'll contact you to confirm delivery timing.`;
     document.getElementById('confirmWaBtn').style.display = 'none';
     document.getElementById('confirmWaQueryLink').href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I have a question about my order ' + orderId + '.')}`;
+
+    if(CUSTOMER && actualWalletUsed > 0){
+      CUSTOMER.walletBalance = Math.max(0, round3Local_(Number(CUSTOMER.walletBalance || 0) - actualWalletUsed));
+      localStorage.setItem('gm_customer', JSON.stringify(CUSTOMER));
+    }
 
     CART = [];
     saveCart();
@@ -3002,6 +3327,7 @@ async function onQrPaidClick(){
   label.textContent = 'Placing your order…';
 
   let orderId = pendingOrderId;
+  let actualWalletUsed = (pendingOrderPayload && pendingOrderPayload.walletAmountUsed) || 0;
   try{
     const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(pendingOrderPayload) });
     const data = await res.json();
@@ -3015,7 +3341,13 @@ async function onQrPaidClick(){
       return;
     }
     if(data && data.orderId) orderId = data.orderId;
+    if(data && typeof data.walletUsed === 'number') actualWalletUsed = data.walletUsed;
   }catch(err){ /* backend not connected yet — still proceed to WhatsApp + confirmation */ }
+
+  if(CUSTOMER && actualWalletUsed > 0){
+    CUSTOMER.walletBalance = Math.max(0, round3Local_(Number(CUSTOMER.walletBalance || 0) - actualWalletUsed));
+    localStorage.setItem('gm_customer', JSON.stringify(CUSTOMER));
+  }
 
   const paidMsg = `Hi! I've completed BenefitPay payment for order ${orderId} (${qrCurrentAmount} BHD). Sending my payment screenshot now.`;
   window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(paidMsg)}`, '_blank');

@@ -166,6 +166,8 @@
   .stock-editor{display:flex;align-items:center;gap:6px;}
   .stock-editor input{width:60px;text-align:center;padding:7px 6px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;}
   .stock-editor button{width:28px;height:28px;padding:0;line-height:1;font-size:16px;}
+  .wallet-editor{display:flex;align-items:center;gap:6px;}
+  .wallet-editor input{width:80px;text-align:center;padding:7px 6px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;}
   .muted{color:var(--ink-soft);font-size:12.5px;}
   .empty-row td{text-align:center;color:var(--ink-soft);padding:34px;}
 
@@ -212,6 +214,7 @@
       <div class="sb-link active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ic">📊</span> Dashboard</div>
       <div class="sb-link" data-tab="products" onclick="switchTab('products')"><span class="ic">🛍️</span> Products</div>
       <div class="sb-link" data-tab="inventory" onclick="switchTab('inventory')"><span class="ic">📋</span> Inventory</div>
+      <div class="sb-link" data-tab="promocodes" onclick="switchTab('promocodes')"><span class="ic">🎟️</span> Promo Codes</div>
       <div class="sb-link" data-tab="homepage" onclick="switchTab('homepage')"><span class="ic">🏠</span> Homepage</div>
       <div class="sb-link" data-tab="orders" onclick="switchTab('orders')"><span class="ic">📦</span> Orders</div>
       <div class="sb-link" data-tab="returns" onclick="switchTab('returns')"><span class="ic">↩️</span> Returns</div>
@@ -232,10 +235,15 @@
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card"><div class="lbl">Total revenue</div><div class="val" id="statRevenue">0.000 BHD</div><div class="delta" id="statRevenueSub">from paid orders</div></div>
+        <div class="stat-card"><div class="lbl">Total revenue</div><div class="val" id="statRevenue">0.000 BHD</div><div class="delta" id="statRevenueSub">actual amount collected, paid orders</div></div>
         <div class="stat-card"><div class="lbl">Orders</div><div class="val" id="statOrders">0</div><div class="delta" id="statOrdersSub">total placed</div></div>
         <div class="stat-card"><div class="lbl">Pending payment</div><div class="val" id="statPending">0</div><div class="delta" id="statPendingSub" style="color:var(--warn);">awaiting confirmation</div></div>
         <div class="stat-card"><div class="lbl">Live products</div><div class="val" id="statProducts">0</div><div class="delta" id="statProductsSub">active in catalogue</div></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="lbl">Promotional expenses</div><div class="val" id="statPromoExpense" style="color:var(--bad);">0.000 BHD</div><div class="delta">total promo code discounts given</div></div>
+        <div class="stat-card"><div class="lbl">Wallet redeemed</div><div class="val" id="statWalletRedeemed" style="color:var(--warn);">0.000 BHD</div><div class="delta">referral wallet spent on orders</div></div>
       </div>
 
       <div class="grid2">
@@ -347,6 +355,44 @@
         <table>
           <thead><tr><th>Product</th><th>Status</th><th>Stock</th><th></th></tr></thead>
           <tbody id="inventoryRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PROMO CODES ================= -->
+    <div class="panel" id="panel-promocodes">
+      <div class="topbar">
+        <div><h1>Promo codes</h1><p>Create discount codes with rules — minimum cart value, fixed BHD or percentage off. Each code can be used once per customer.</p></div>
+        <button class="ghost" onclick="loadPromoCodes()">↻ Refresh</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="lbl">Active codes</div><div class="val" id="promoActiveStat">0</div></div>
+        <div class="stat-card"><div class="lbl">Total redemptions</div><div class="val" id="promoRedemptionsStat">0</div></div>
+        <div class="stat-card"><div class="lbl">Promotional expenses</div><div class="val" id="promoExpenseStat" style="color:var(--bad);">0.000 BHD</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Create a new code</h2>
+        <div class="row">
+          <div class="field"><label>Code</label><input type="text" id="newPromoCode" placeholder="e.g. SUMMER1" style="text-transform:uppercase;"></div>
+          <div class="field"><label>Discount type</label>
+            <select id="newPromoType">
+              <option value="fixed">Fixed amount (BHD)</option>
+              <option value="percent">Percentage (%)</option>
+            </select>
+          </div>
+          <div class="field"><label>Discount value</label><input type="number" step="0.001" min="0" id="newPromoValue" placeholder="e.g. 1.000"></div>
+          <div class="field"><label>Minimum cart value (BHD)</label><input type="number" step="0.001" min="0" id="newPromoMin" placeholder="e.g. 6.000"></div>
+        </div>
+        <button class="primary" onclick="createPromoCode()">+ Create code</button>
+      </div>
+
+      <div class="card">
+        <h2>Existing codes</h2>
+        <table>
+          <thead><tr><th>Code</th><th>Discount</th><th>Min. cart value</th><th>Redemptions</th><th>Status</th><th></th></tr></thead>
+          <tbody id="promoRows"></tbody>
         </table>
       </div>
     </div>
@@ -505,7 +551,7 @@
           <input type="text" id="custSearch" placeholder="Search by name, email, or phone…" oninput="renderCustomerRows()">
         </div>
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Registered</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Referral code</th><th>Referred by</th><th>Wallet</th><th>Registered</th></tr></thead>
           <tbody id="customerRows"></tbody>
         </table>
       </div>
@@ -599,9 +645,10 @@ function switchTab(tab){
 }
 
 async function loadAll(){
-  await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings(), loadSubscribers(), loadCampaigns()]);
+  await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadHeroSettings(), loadSubscribers(), loadCampaigns(), loadPromoCodes()]);
   await loadReturns();
   renderDashboard();
+  renderPromoCodes(); // re-render now that ORDERS has definitely finished loading, for accurate redemption counts
 }
 
 /* ---------------- image slot builder ---------------- */
@@ -1238,12 +1285,24 @@ async function deleteReturn(id){
 
 /* ---------------- dashboard ---------------- */
 function renderDashboard(){
-  const revenue = ORDERS.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.total||0), 0);
+  // amountCollected is the real cash/BenefitPay amount received (total minus
+  // promo discount minus wallet redeemed). Older orders placed before this
+  // field existed fall back to computing the equivalent value.
+  const revenue = ORDERS.filter(o => o.paymentStatus === 'paid').reduce((s,o) => {
+    const collected = (o.amountCollected !== undefined && o.amountCollected !== '')
+      ? Number(o.amountCollected)
+      : Math.max(0, Number(o.total||0) - Number(o.walletUsed||0) - Number(o.promoDiscount||0));
+    return s + collected;
+  }, 0);
   const pending = ORDERS.filter(o => o.paymentStatus !== 'paid').length;
+  const promoExpense = ORDERS.reduce((s,o) => s + Number(o.promoDiscount || 0), 0);
+  const walletRedeemed = ORDERS.reduce((s,o) => s + Number(o.walletUsed || 0), 0);
   document.getElementById('statRevenue').textContent = revenue.toFixed(3) + ' BHD';
   document.getElementById('statOrders').textContent = ORDERS.length;
   document.getElementById('statPending').textContent = pending;
   document.getElementById('statProducts').textContent = PRODUCTS.filter(p => isYes(p.active)).length;
+  document.getElementById('statPromoExpense').textContent = promoExpense.toFixed(3) + ' BHD';
+  document.getElementById('statWalletRedeemed').textContent = walletRedeemed.toFixed(3) + ' BHD';
 
   const recent = ORDERS.slice(0,5);
   document.getElementById('recentOrders').innerHTML = recent.length ? recent.map(o => `
@@ -1361,9 +1420,99 @@ function renderCustomerRows(){
       <td style="font-weight:700;">${c.name||'—'}</td>
       <td>${c.email||'—'}</td>
       <td>${c.phone||'—'}</td>
+      <td><code style="font-size:12px;">${c.referralCode||'—'}</code></td>
+      <td class="muted">${c.referredBy||'—'}</td>
+      <td>
+        <div class="wallet-editor">
+          <input type="number" step="0.001" min="0" id="walletInput-${c.email}" value="${Number(c.walletBalance||0).toFixed(3)}" onkeydown="if(event.key==='Enter')saveWalletInput('${c.email}')">
+          <button class="ghost small" onclick="saveWalletInput('${c.email}')">Save</button>
+        </div>
+      </td>
       <td class="muted">${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</td>
     </tr>
-  `).join('') : `<tr class="empty-row"><td colspan="4">No customers have registered yet.</td></tr>`;
+  `).join('') : `<tr class="empty-row"><td colspan="7">No customers have registered yet.</td></tr>`;
+}
+
+async function saveWalletInput(email){
+  const input = document.getElementById('walletInput-'+email);
+  if(!input) return;
+  const newBalance = Math.max(0, Number(input.value) || 0);
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'adjustCustomerWallet', password: ADMIN_PASSWORD, email, walletBalance: newBalance }) });
+  const data = await res.json();
+  if(data.ok){
+    const c = CUSTOMERS.find(c => c.email === email);
+    if(c) c.walletBalance = data.walletBalance;
+    input.value = Number(data.walletBalance).toFixed(3);
+  } else {
+    alert(data.error || 'Could not update wallet balance.');
+  }
+}
+
+/* ---------------- promo codes ---------------- */
+let PROMO_CODES = [];
+async function loadPromoCodes(){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listPromoCodesAdmin', password: ADMIN_PASSWORD }) });
+  const data = await res.json();
+  PROMO_CODES = (data.promoCodes || []).slice().reverse();
+  renderPromoCodes();
+}
+function renderPromoCodes(){
+  const activeCount = PROMO_CODES.filter(p => isYes(p.active)).length;
+  let totalRedemptions = 0;
+  let totalExpense = 0;
+  (ORDERS || []).forEach(o => {
+    if(o.promoCode){ totalExpense += Number(o.promoDiscount || 0); }
+  });
+
+  const rows = PROMO_CODES.map(p => {
+    const redemptions = (ORDERS || []).filter(o => (o.promoCode||'').toString().toUpperCase() === (p.code||'').toUpperCase()).length;
+    totalRedemptions += redemptions;
+    const discountLabel = p.discountType === 'percent' ? `${Number(p.discountValue)}%` : `${Number(p.discountValue).toFixed(3)} BHD`;
+    return { p, redemptions, discountLabel };
+  });
+
+  document.getElementById('promoActiveStat').textContent = activeCount;
+  document.getElementById('promoRedemptionsStat').textContent = totalRedemptions;
+  document.getElementById('promoExpenseStat').textContent = totalExpense.toFixed(3) + ' BHD';
+
+  document.getElementById('promoRows').innerHTML = rows.length ? rows.map(({p, redemptions, discountLabel}) => `
+    <tr>
+      <td style="font-weight:700;"><code>${p.code}</code></td>
+      <td>${discountLabel}</td>
+      <td>${Number(p.minOrderValue||0).toFixed(3)} BHD</td>
+      <td>${redemptions}</td>
+      <td><span class="badge ${isYes(p.active)?'active-yes':'active-no'}" style="cursor:pointer;" onclick="togglePromoActive('${p.id}',${isYes(p.active)})">${isYes(p.active) ? '✓ Active' : '⛔ Inactive'}</span></td>
+      <td><button class="ghost small" onclick="deletePromoCodeRow('${p.id}','${p.code}')">Delete</button></td>
+    </tr>
+  `).join('') : `<tr class="empty-row"><td colspan="6">No promo codes yet.</td></tr>`;
+}
+async function createPromoCode(){
+  const code = document.getElementById('newPromoCode').value.trim().toUpperCase();
+  const discountType = document.getElementById('newPromoType').value;
+  const discountValue = Number(document.getElementById('newPromoValue').value);
+  const minOrderValue = Number(document.getElementById('newPromoMin').value || 0);
+  if(!code){ alert('Please enter a code.'); return; }
+  if(!discountValue || discountValue <= 0){ alert('Please enter a discount value greater than 0.'); return; }
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'addPromoCode', password: ADMIN_PASSWORD, code, discountType, discountValue, minOrderValue }) });
+  const data = await res.json();
+  if(!data.ok){ alert(data.error || 'Could not create this code.'); return; }
+  document.getElementById('newPromoCode').value = '';
+  document.getElementById('newPromoValue').value = '';
+  document.getElementById('newPromoMin').value = '';
+  loadPromoCodes();
+}
+async function togglePromoActive(id, currentlyActive){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updatePromoCode', password: ADMIN_PASSWORD, id, active: !currentlyActive }) });
+  const data = await res.json();
+  if(!data.ok){ alert(data.error || 'Could not update this code.'); return; }
+  loadPromoCodes();
+}
+async function deletePromoCodeRow(id, code){
+  if(!confirm(`Delete promo code ${code}? This can't be undone.`)) return;
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'deletePromoCode', password: ADMIN_PASSWORD, id }) });
+  const data = await res.json();
+  if(!data.ok){ alert(data.error || 'Could not delete this code.'); return; }
+  loadPromoCodes();
 }
 
 /* ---------------- marketing ---------------- */
