@@ -158,6 +158,14 @@
   .pill.delivered{background:var(--good);color:white;}
   select.status{font-size:11.5px;padding:5px 7px;border-radius:7px;border:1.5px solid var(--line);font-family:inherit;}
   .stock-low{color:var(--bad);font-weight:700;}
+  .badge.low-badge{background:var(--warn-bg);color:var(--warn);}
+  .badge.out-badge{background:var(--bad-bg);color:var(--bad);}
+  @keyframes stockBlink{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  .blink-stock{animation:stockBlink 1.1s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){ .blink-stock{animation:none!important;} }
+  .stock-editor{display:flex;align-items:center;gap:6px;}
+  .stock-editor input{width:60px;text-align:center;padding:7px 6px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;}
+  .stock-editor button{width:28px;height:28px;padding:0;line-height:1;font-size:16px;}
   .muted{color:var(--ink-soft);font-size:12.5px;}
   .empty-row td{text-align:center;color:var(--ink-soft);padding:34px;}
 
@@ -203,6 +211,7 @@
     <div class="sb-nav">
       <div class="sb-link active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ic">📊</span> Dashboard</div>
       <div class="sb-link" data-tab="products" onclick="switchTab('products')"><span class="ic">🛍️</span> Products</div>
+      <div class="sb-link" data-tab="inventory" onclick="switchTab('inventory')"><span class="ic">📋</span> Inventory</div>
       <div class="sb-link" data-tab="homepage" onclick="switchTab('homepage')"><span class="ic">🏠</span> Homepage</div>
       <div class="sb-link" data-tab="orders" onclick="switchTab('orders')"><span class="ic">📦</span> Orders</div>
       <div class="sb-link" data-tab="returns" onclick="switchTab('returns')"><span class="ic">↩️</span> Returns</div>
@@ -235,7 +244,7 @@
           <div id="recentOrders"><p class="muted">Loading…</p></div>
         </div>
         <div class="card">
-          <h2>Low stock <span class="muted">(≤ 3 units)</span></h2>
+          <h2>Low stock <span class="muted">(≤ 5 units)</span></h2>
           <div id="lowStock"><p class="muted">Loading…</p></div>
           <h2 style="margin-top:20px;">Featured right now</h2>
           <div id="featuredPreview"><p class="muted">Loading…</p></div>
@@ -306,6 +315,38 @@
         <table>
           <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Flags</th><th></th></tr></thead>
           <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= INVENTORY ================= -->
+    <div class="panel" id="panel-inventory">
+      <div class="topbar">
+        <div><h1>Inventory</h1><p>Track stock levels, adjust quantities, and spot low/out-of-stock products at a glance.</p></div>
+        <button class="ghost" onclick="loadAll()">↻ Refresh</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="lbl">Total products</div><div class="val" id="invTotalStat">0</div></div>
+        <div class="stat-card"><div class="lbl">In stock</div><div class="val" id="invOkStat" style="color:var(--good);">0</div></div>
+        <div class="stat-card"><div class="lbl">Low stock <span class="muted">(≤5)</span></div><div class="val" id="invLowStat" style="color:var(--warn);">0</div></div>
+        <div class="stat-card"><div class="lbl">Out of stock</div><div class="val" id="invOutStat" style="color:var(--bad);">0</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Stock levels</h2>
+        <div class="toolbar">
+          <input type="text" id="invSearch" placeholder="Search products…" oninput="renderInventory()">
+          <select id="invFilter" onchange="renderInventory()">
+            <option value="">All products</option>
+            <option value="low">Low stock (≤5)</option>
+            <option value="out">Out of stock</option>
+            <option value="ok">Healthy stock</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>Product</th><th>Status</th><th>Stock</th><th></th></tr></thead>
+          <tbody id="inventoryRows"></tbody>
         </table>
       </div>
     </div>
@@ -588,6 +629,7 @@ async function loadProducts(){
   buildCatFilter();
   renderProductRows();
   buildHeroProductOptions();
+  renderInventory();
 }
 function buildHeroProductOptions(){
   ['heroProductId','heroProductId2','heroProductId3'].forEach(id => {
@@ -597,6 +639,77 @@ function buildHeroProductOptions(){
     sel.innerHTML = '<option value="">— none, just a photo —</option>' + PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
     sel.value = current;
   });
+}
+
+/* ---------------- inventory ---------------- */
+function renderInventory(){
+  const searchEl = document.getElementById('invSearch');
+  const filterEl = document.getElementById('invFilter');
+  if(!searchEl || !filterEl) return; // panel not in DOM yet
+
+  const q = (searchEl.value || '').toLowerCase();
+  const filter = filterEl.value;
+  let list = PRODUCTS.filter(p => (p.name||'').toLowerCase().includes(q));
+  if(filter === 'out') list = list.filter(p => Number(p.stock) <= 0);
+  if(filter === 'low') list = list.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5);
+  if(filter === 'ok') list = list.filter(p => Number(p.stock) > 5);
+
+  const total = PRODUCTS.length;
+  const outCount = PRODUCTS.filter(p => Number(p.stock) <= 0).length;
+  const lowCount = PRODUCTS.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5).length;
+  const okCount = total - outCount - lowCount;
+  document.getElementById('invTotalStat').textContent = total;
+  document.getElementById('invOkStat').textContent = okCount;
+  document.getElementById('invLowStat').textContent = lowCount;
+  document.getElementById('invOutStat').textContent = outCount;
+
+  document.getElementById('inventoryRows').innerHTML = list.length ? list.map(p => {
+    const img = (p.images && p.images[0]) || 'https://placehold.co/100x100/FDF7F7/8A3B3B?text=GM';
+    const stock = Number(p.stock || 0);
+    let statusHtml;
+    if(stock <= 0) statusHtml = `<span class="badge out-badge blink-stock">⛔ Out of stock</span>`;
+    else if(stock <= 5) statusHtml = `<span class="badge low-badge blink-stock">⚠ ${stock} left</span>`;
+    else statusHtml = `<span class="badge active-yes">✓ In stock</span>`;
+    return `
+    <tr>
+      <td><div class="p-name-cell"><img class="p-thumb" src="${img}"><div><div class="nm">${p.name}</div><div class="cat">${p.category||'—'}</div></div></div></td>
+      <td>${statusHtml}</td>
+      <td>
+        <div class="stock-editor">
+          <button class="ghost" onclick="adjustStock('${p.id}',-1)">−</button>
+          <input type="number" id="stockInput-${p.id}" value="${stock}" min="0" onkeydown="if(event.key==='Enter')saveStockInput('${p.id}')">
+          <button class="ghost" onclick="adjustStock('${p.id}',1)">+</button>
+        </div>
+      </td>
+      <td><button class="ghost small" onclick="saveStockInput('${p.id}')">Save</button></td>
+    </tr>`;
+  }).join('') : `<tr class="empty-row"><td colspan="4">No products match your filters yet.</td></tr>`;
+}
+
+async function updateStock(id, newStock){
+  newStock = Math.max(0, Math.round(Number(newStock) || 0));
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'updateProduct', password: ADMIN_PASSWORD, id, stock: newStock }) });
+  const data = await res.json();
+  if(data.ok){
+    const p = PRODUCTS.find(p => p.id === id);
+    if(p) p.stock = newStock;
+    renderInventory();
+    renderProductRows();
+    renderDashboard();
+  } else {
+    alert(data.error || 'Could not update stock. Please try again.');
+  }
+  return data.ok;
+}
+function adjustStock(id, delta){
+  const p = PRODUCTS.find(p => p.id === id);
+  if(!p) return;
+  updateStock(id, Number(p.stock || 0) + delta);
+}
+function saveStockInput(id){
+  const input = document.getElementById('stockInput-'+id);
+  if(!input) return;
+  updateStock(id, input.value);
 }
 function buildCatFilter(){
   const cats = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
@@ -636,7 +749,7 @@ function renderProductRows(){
   if(cat) list = list.filter(p => p.category === cat);
   if(flag === 'featured') list = list.filter(p => isYes(p.featured));
   if(flag === 'bestseller') list = list.filter(p => isYes(p.bestseller));
-  if(flag === 'low') list = list.filter(p => Number(p.stock) <= 3);
+  if(flag === 'low') list = list.filter(p => Number(p.stock) <= 5);
   if(flag === 'inactive') list = list.filter(p => !isYes(p.active));
 
   document.getElementById('catalogueCount').textContent = `— ${list.length} of ${PRODUCTS.length} products`;
@@ -654,7 +767,7 @@ function renderProductRows(){
     <tr>
       <td><div class="p-name-cell"><img class="p-thumb" src="${img}"><div><div class="nm">${p.name}</div><div class="cat">${p.category||'—'}</div></div></div></td>
       <td class="price-cell">${pct>0?`<span class="was">${Number(p.compareAtPrice).toFixed(3)} BHD</span>`:''}${Number(p.price).toFixed(3)} BHD</td>
-      <td class="${Number(p.stock)<=3?'stock-low':''}">${p.stock}</td>
+      <td class="${Number(p.stock)<=0?'stock-low blink-stock':Number(p.stock)<=5?'stock-low':''}">${p.stock}</td>
       <td>${flags}</td>
       <td style="white-space:nowrap;">
         <button class="ghost small" onclick='editProduct("${p.id}")'>Edit</button>
@@ -1143,11 +1256,11 @@ function renderDashboard(){
     </div>
   `).join('') : `<p class="muted">No orders yet.</p>`;
 
-  const low = PRODUCTS.filter(p => Number(p.stock) <= 3 && isYes(p.active)).slice(0,5);
+  const low = PRODUCTS.filter(p => Number(p.stock) <= 5 && isYes(p.active)).slice(0,5);
   document.getElementById('lowStock').innerHTML = low.length ? low.map(p => `
     <div class="mini-row">
       <div class="who"><img class="thumb" src="${(p.images&&p.images[0])||'https://placehold.co/100x100/FDF7F7/8A3B3B?text=GM'}"><div class="name">${p.name}</div></div>
-      <div class="stock-low">${p.stock} left</div>
+      <div class="stock-low blink-stock">${Number(p.stock)<=0?'Out of stock':p.stock+' left'}</div>
     </div>
   `).join('') : `<p class="muted">Stock levels look healthy.</p>`;
 

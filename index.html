@@ -358,6 +358,7 @@
   .btn-ghost{
     background:#fff;color:var(--ink);border:1px solid var(--line);padding:15px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;
   }
+  .btn-primary:disabled,.btn-ghost:disabled{background:#e2e2e2;color:#999;border-color:#e2e2e2;cursor:not-allowed;transform:none;box-shadow:none;}
 
   /* ---------- Full-width hero banner: announcement strip, 2:1 slideshow, tags below ---------- */
   .hero-banner{position:relative;width:100%;overflow:hidden;background:var(--paper-soft);}
@@ -510,6 +511,14 @@
   .card-badge.featured{background:#fff;color:#8A5A00;}
   .card-badge.bestseller{background:var(--ink);color:#fff;}
   .card-badge.low{background:#B23B2E;color:#fff;}
+  .card-badge.out{background:#6B6B70;color:#fff;}
+  @keyframes gmStockBlink{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .blink-stock{animation:gmStockBlink 1.2s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){ .blink-stock{animation:none!important;} }
+  .card.out-of-stock{cursor:default;}
+  .card.out-of-stock .imgwrap img{filter:grayscale(70%);opacity:0.55;}
+  .add-btn:disabled{background:#ccc;color:#888;cursor:not-allowed;}
+  .add-btn:disabled:hover{background:#ccc;}
 
   /* ---------- Featured / Best sellers rails ---------- */
   .rail-scroll{display:flex;gap:18px;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x proximity;}
@@ -1170,7 +1179,7 @@
         </div>
         <div class="pdp-actions">
           <button class="btn-primary" id="pdpAddBtn" onclick="popButton(this);pdpAddToCart(event)" data-i18n="pdpAddToCart">Add to cart</button>
-          <button class="btn-ghost" onclick="pdpBuyNow()" data-i18n="pdpBuyNow">Buy now</button>
+          <button class="btn-ghost" id="pdpBuyBtn" onclick="pdpBuyNow()" data-i18n="pdpBuyNow">Buy now</button>
         </div>
         <div class="pdp-trust">
           <div data-i18n="pdpTrustCod">✅ Cash on delivery available</div>
@@ -1784,6 +1793,7 @@ const I18N = {
     saleOff:'off', featuredBadge:'⭐ Featured', bestsellerBadge:'🔥 Best seller', onlyLeft:'Only {n} left', noProductsMatch:'No products match yet — try another search.',
     productsAvailable:'{n} products available now', productAvailable:'1 product available now',
     inStock:'✓ In stock', outOfStock:'✕ Out of stock', onlyLeftStock:'⚠ Only {n} left in stock', saveLabel:'Save',
+    outOfStockBtn:'Out of stock', outOfStockAlert:'Sorry, this product is out of stock.', maxStockAlert:'Sorry, only {n} left in stock.',
     shopCrumb:'Shop', pdpBack:'← Back to shop', pdpColorLabel:'Color', pdpAddToCart:'Add to cart', pdpBuyNow:'Buy now',
     pdpTrustCod:'✅ Cash on delivery available', pdpTrustBenefitpay:'📲 BenefitPay via WhatsApp confirmation', pdpTrustDelivery:'🚚 Delivered across Bahrain',
     pdpRelated:'You might also like', noReviewsYet:'No reviews yet', noReviewsShort:'No reviews yet — be the first',
@@ -1838,6 +1848,7 @@ const I18N = {
     saleOff:'خصم', featuredBadge:'⭐ مميز', bestsellerBadge:'🔥 الأكثر مبيعًا', onlyLeft:'{n} فقط متبقي', noProductsMatch:'لا توجد منتجات مطابقة — جرّب بحثًا آخر.',
     productsAvailable:'{n} منتج متوفر الآن', productAvailable:'منتج واحد متوفر الآن',
     inStock:'✓ متوفر', outOfStock:'✕ غير متوفر', onlyLeftStock:'⚠ {n} فقط متبقي في المخزون', saveLabel:'وفّر',
+    outOfStockBtn:'غير متوفر', outOfStockAlert:'عذرًا، هذا المنتج غير متوفر حاليًا.', maxStockAlert:'عذرًا، يتبقى {n} فقط في المخزون.',
     shopCrumb:'المتجر', pdpBack:'← العودة للمتجر', pdpColorLabel:'اللون', pdpAddToCart:'أضف إلى السلة', pdpBuyNow:'اشترِ الآن',
     pdpTrustCod:'✅ الدفع عند الاستلام متاح', pdpTrustBenefitpay:'📲 BenefitPay عبر تأكيد واتساب', pdpTrustDelivery:'🚚 التوصيل لجميع مناطق البحرين',
     pdpRelated:'قد يعجبك أيضًا', noReviewsYet:'لا توجد تقييمات بعد', noReviewsShort:'لا توجد تقييمات بعد — كن أول من يقيّم',
@@ -2180,14 +2191,18 @@ function setBottomNavActive(id){
 
 function productCardHtml(p){
   const pct = discountPct(p);
+  const stock = Number(p.stock);
+  const outOfStock = stock <= 0;
+  const lowStock = !outOfStock && stock <= 5;
   const badges = [
-    pct > 0 ? `<span class="card-badge sale">🏷️ ${pct}% ${T('saleOff')}</span>` : '',
+    pct > 0 && !outOfStock ? `<span class="card-badge sale">🏷️ ${pct}% ${T('saleOff')}</span>` : '',
     p.featured ? `<span class="card-badge featured">${T('featuredBadge')}</span>` : '',
     p.bestseller ? `<span class="card-badge bestseller">${T('bestsellerBadge')}</span>` : '',
-    p.stock > 0 && p.stock <= 3 ? `<span class="card-badge low">${T('onlyLeft').replace('{n}', p.stock)}</span>` : ''
+    outOfStock ? `<span class="card-badge out">${T('outOfStock')}</span>` : '',
+    lowStock ? `<span class="card-badge low blink-stock">${T('onlyLeft').replace('{n}', stock)}</span>` : ''
   ].join('');
   return `
-    <div class="card" onclick="openProduct('${p.id}')">
+    <div class="card ${outOfStock?'out-of-stock':''}" onclick="openProduct('${p.id}')">
       ${badges ? `<div class="card-badges">${badges}</div>` : ''}
       <div class="imgwrap"><img src="${p.images[0]}" alt="${pName(p)}" loading="lazy" decoding="async"></div>
       <div class="body">
@@ -2196,7 +2211,9 @@ function productCardHtml(p){
         ${Number(p.reviewCount) > 0 ? `<div class="rating-row">${renderStars(p.avgRating, 'small')}<span>(${p.reviewCount})</span></div>` : ''}
         <div class="price-row">
           ${priceHtml(p)}
-          <button class="add-btn" onclick="event.stopPropagation();popButton(this);addToCart('${p.id}',1,event)">${T('addBtn')}</button>
+          ${outOfStock
+            ? `<button class="add-btn" disabled onclick="event.stopPropagation()">${T('outOfStockBtn')}</button>`
+            : `<button class="add-btn" onclick="event.stopPropagation();popButton(this);addToCart('${p.id}',1,event)">${T('addBtn')}</button>`}
         </div>
         <div class="free-delivery"><span class="van">🚚</span> ${T('freeDeliveryBadge')}</div>
       </div>
@@ -2224,12 +2241,17 @@ function renderBestsellers(){
 function addToCart(id, qty, evt, color){
   qty = qty || 1;
   const p = PRODUCTS.find(p => p.id === id);
+  if(!p) return;
+  const stock = Number(p.stock);
+  if(stock <= 0){ alert(T('outOfStockAlert')); return; }
   const existing = CART.find(i => i.id === id && (i.color || null) === (color || null));
-  if(existing) existing.qty += qty;
-  else{
-    if(!p) return;
-    CART.push({ id, name:p.name, price:Number(p.price), image:p.images[0], qty, color: color || null });
-  }
+  const inCartQty = existing ? existing.qty : 0;
+  const allowed = Math.max(0, stock - inCartQty);
+  if(allowed <= 0){ alert(T('maxStockAlert').replace('{n}', stock)); return; }
+  const qtyToAdd = Math.min(qty, allowed);
+  if(qtyToAdd < qty) alert(T('maxStockAlert').replace('{n}', stock));
+  if(existing) existing.qty += qtyToAdd;
+  else CART.push({ id, name:p.name, price:Number(p.price), image:p.images[0], qty: qtyToAdd, color: color || null });
   saveCart();
   if(evt && evt.target && p) flyToCart(evt.target, p.images[0]);
   else bumpCartIcon();
@@ -2277,6 +2299,11 @@ function changeQty(id, delta, color){
   color = color || null;
   const item = CART.find(i => i.id === id && (i.color || null) === color);
   if(!item) return;
+  if(delta > 0){
+    const p = PRODUCTS.find(p => p.id === id);
+    const stock = p ? Number(p.stock) : Infinity;
+    if(item.qty >= stock){ alert(T('maxStockAlert').replace('{n}', stock)); return; }
+  }
   item.qty += delta;
   if(item.qty <= 0) CART = CART.filter(i => !(i.id === id && (i.color || null) === color));
   saveCart();
@@ -2337,10 +2364,11 @@ function openProduct(id){
   }
 
   const stockEl = document.getElementById('pdpStock');
-  if(p.stock > 3){ stockEl.textContent = T('inStock'); stockEl.className = 'pdp-stock in'; }
-  else if(p.stock > 0){ stockEl.textContent = T('onlyLeftStock').replace('{n}', p.stock); stockEl.className = 'pdp-stock low'; }
+  if(p.stock > 5){ stockEl.textContent = T('inStock'); stockEl.className = 'pdp-stock in'; }
+  else if(p.stock > 0){ stockEl.textContent = T('onlyLeftStock').replace('{n}', p.stock); stockEl.className = 'pdp-stock low blink-stock'; }
   else{ stockEl.textContent = T('outOfStock'); stockEl.className = 'pdp-stock low'; }
   document.getElementById('pdpAddBtn').disabled = p.stock <= 0;
+  document.getElementById('pdpBuyBtn').disabled = p.stock <= 0;
 
   document.getElementById('pdpBadges').innerHTML = [
     p.featured ? `<span class="card-badge featured" style="position:static;">${T('featuredBadge')}</span>` : '',
@@ -2398,7 +2426,9 @@ function setPdpImage(i){
 }
 
 function pdpChangeQty(delta){
-  PDP_QTY = Math.max(1, PDP_QTY + delta);
+  const stock = PDP_PRODUCT ? Number(PDP_PRODUCT.stock) : Infinity;
+  const cap = stock > 0 ? stock : 1;
+  PDP_QTY = Math.max(1, Math.min(PDP_QTY + delta, cap));
   document.getElementById('pdpQty').textContent = PDP_QTY;
 }
 function pdpAddToCart(evt){
@@ -2870,7 +2900,12 @@ async function placeOrder(){
     try{
       const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(orderPayload) });
       const data = await res.json();
-      if(data.orderId) orderId = data.orderId;
+      if(data && data.ok === false){
+        alert(data.error || 'Sorry, we could not place your order — please try again.');
+        loadProducts(); // refresh stock numbers so the cart/badges reflect what's really left
+        return;
+      }
+      if(data && data.orderId) orderId = data.orderId;
     }catch(err){ /* backend not connected yet — still show confirmation */ }
 
     document.getElementById('checkoutStep1').style.display='none';
@@ -2920,7 +2955,16 @@ async function onQrPaidClick(){
   try{
     const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify(pendingOrderPayload) });
     const data = await res.json();
-    if(data.orderId) orderId = data.orderId;
+    if(data && data.ok === false){
+      alert(data.error || 'Sorry, we could not place your order — please try again.');
+      loadProducts();
+      isSubmittingQrPayment = false;
+      btn.disabled = false;
+      spinner.classList.remove('show');
+      label.textContent = originalLabel;
+      return;
+    }
+    if(data && data.orderId) orderId = data.orderId;
   }catch(err){ /* backend not connected yet — still proceed to WhatsApp + confirmation */ }
 
   const paidMsg = `Hi! I've completed BenefitPay payment for order ${orderId} (${qrCurrentAmount} BHD). Sending my payment screenshot now.`;
