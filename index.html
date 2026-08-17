@@ -123,6 +123,11 @@
   .addr-grid .field{min-width:0;}
   .guest-banner{background:var(--paper-soft);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;}
   .guest-banner a{color:var(--blush-ink);font-weight:700;cursor:pointer;}
+  .signup-perks-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--blush) 0%,var(--blush-deep) 100%);border-radius:12px;padding:11px 14px;margin-bottom:14px;}
+  .signup-perks-banner .spb-icon{font-size:20px;flex-shrink:0;}
+  .signup-perks-banner .spb-text{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .signup-perks-banner .spb-title{font-size:12.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.1);}
+  .signup-perks-banner .spb-sub{font-size:11px;font-weight:600;color:rgba(255,255,255,0.92);}
   .guest-link{display:block;text-align:center;font-size:13px;font-weight:700;color:var(--ink-soft);margin-top:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
   .guest-link:hover{color:var(--ink);}
 
@@ -306,6 +311,11 @@
   .acct-menu.show{display:block;}
   .acct-menu a{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--ink);}
   .acct-menu a:hover{background:var(--paper-soft);}
+  .acct-menu a.acct-menu-item-sub{align-items:flex-start;gap:10px;}
+  .acct-menu a.acct-menu-item-sub .ams-icon{font-size:15px;line-height:1.4;flex-shrink:0;}
+  .acct-menu a.acct-menu-item-sub .ams-text{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .acct-menu a.acct-menu-item-sub .ams-title{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .acct-menu a.acct-menu-item-sub .ams-sub{font-size:11px;font-weight:500;color:var(--ink-soft);white-space:normal;line-height:1.3;}
   @media (max-width:760px){
     .acct-menu{
       top:auto; left:12px; right:12px; bottom:calc(64px + max(7px,env(safe-area-inset-bottom)));
@@ -943,6 +953,13 @@
 
 <div class="acct-menu" id="acctMenu">
   <a href="javascript:void(0)" onclick="openMyOrders('orders')" data-i18n="acctOrders">📦 My orders</a>
+  <a href="javascript:void(0)" onclick="openMyOrders('referrals')" class="acct-menu-item-sub">
+    <span class="ams-icon">🎁</span>
+    <span class="ams-text">
+      <span class="ams-title" data-i18n="acctReferEarn">Refer &amp; earn</span>
+      <span class="ams-sub" data-i18n="acctReferEarnSub">Earn 0.200 BHD per successful registration</span>
+    </span>
+  </a>
   <a href="javascript:void(0)" onclick="openMyOrders('addresses')" data-i18n="acctAddresses">🏠 Saved addresses</a>
   <a href="javascript:void(0)" onclick="openMyOrders('profile')" data-i18n="acctProfile">⚙️ Profile</a>
   <a href="javascript:void(0)" onclick="doLogout()" data-i18n="acctLogout">↩ Log out</a>
@@ -1101,6 +1118,13 @@
       <div class="guest-banner" id="guestBanner" style="display:none;">
         <span data-i18n="guestBannerText">Checking out as a guest.</span> <a href="javascript:void(0)" onclick="switchToLogin()" data-i18n="guestBannerLogin">Log in</a> <span data-i18n="guestBannerSuffix">for faster checkout & order tracking.</span>
       </div>
+      <div class="signup-perks-banner" id="guestPerksBanner" style="display:none;cursor:pointer;" onclick="switchToLogin()">
+        <span class="spb-icon">🎁</span>
+        <div class="spb-text">
+          <span class="spb-title" data-i18n="signupPerksTitle">Register for exciting offers</span>
+          <span class="spb-sub" data-i18n="signupPerksSub">Plus refer &amp; earn 0.200 BHD per successful referral</span>
+        </div>
+      </div>
       <div class="saved-addr-pick" id="savedAddrPicker" style="display:none;"></div>
       <div class="field"><label data-i18n="fieldFullName">Full name</label><input type="text" id="custName" data-i18n-placeholder="phFullName" placeholder="Your name" oninput="onCheckoutFieldsEdited()"></div>
       <div class="field"><label data-i18n="fieldMobile">Mobile number</label><input type="text" id="custPhone" placeholder="+973 3xxx xxxx" oninput="onCheckoutFieldsEdited()"></div>
@@ -1227,6 +1251,13 @@
       <p class="auth-error" id="loginError"></p>
       <button class="submit-btn" onclick="doLogin()" data-i18n="loginBtn">Log in</button>
       <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);"><span data-i18n="newHere">New here?</span> <a href="javascript:void(0)" onclick="showAuthPanel('register')" style="color:var(--blush-ink);font-weight:700;" data-i18n="createAccount">Create an account</a></p>
+      <div class="signup-perks-banner">
+        <span class="spb-icon">🎁</span>
+        <div class="spb-text">
+          <span class="spb-title" data-i18n="signupPerksTitle">Register for exciting offers</span>
+          <span class="spb-sub" data-i18n="signupPerksSub">Plus refer &amp; earn 0.200 BHD per successful referral</span>
+        </div>
+      </div>
       <a class="guest-link" href="javascript:void(0)" onclick="continueAsGuest()" data-i18n="continueGuest">Continue without an account</a>
     </div>
 
@@ -1259,6 +1290,13 @@
       <p class="auth-error" id="regError"></p>
       <button class="submit-btn" onclick="doRegister()" data-i18n="createAccountBtn">Create account</button>
       <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--ink-soft);"><span data-i18n="alreadyHaveAccount">Already have an account?</span> <a href="javascript:void(0)" onclick="showAuthPanel('login')" style="color:var(--blush-ink);font-weight:700;" data-i18n="loginBtn">Log in</a></p>
+      <div class="signup-perks-banner">
+        <span class="spb-icon">🎁</span>
+        <div class="spb-text">
+          <span class="spb-title" data-i18n="signupPerksTitle">Register for exciting offers</span>
+          <span class="spb-sub" data-i18n="signupPerksSub">Plus refer &amp; earn 0.200 BHD per successful referral</span>
+        </div>
+      </div>
       <a class="guest-link" href="javascript:void(0)" onclick="continueAsGuest()" data-i18n="continueGuest">Continue without an account</a>
     </div>
   </div>
@@ -2046,6 +2084,7 @@ const I18N = {
     navShop:'Shop', navCategories:'Categories', navReviews:'Reviews', navAbout:'About', navLogin:'Login', navCart:'Cart',
     heroEyebrowDefault:'ORDER ONLINE, GET IT DELIVERED EASILY',
     acctOrders:'📦 My orders', acctAddresses:'🏠 Saved addresses', acctProfile:'⚙️ Profile', acctLogout:'↩ Log out',
+    acctReferEarn:'Refer & earn', acctReferEarnSub:'Earn 0.200 BHD per successful registration',
     eyebrowHandpicked:'Handpicked', headFeatured:'Featured this week', subFeatured:'A short list we personally rate — swipe through.',
     eyebrowCrowd:'Crowd favorites', headBestsellers:'Best sellers', subBestsellers:'What Bahrain keeps adding to cart.',
     eyebrowShopByCat:'Shop by category', headFindGadget:'Find your next favorite gadget', subFindGadget:'Browse what people in Bahrain are buying right now.',
@@ -2071,6 +2110,7 @@ const I18N = {
     qrDoLater:"I'll do this later", confirmTitle:'Order received', confirmWaBtn:'📲 Continue on WhatsApp', confirmAnyQuery:'Any query?', confirmDone:'Done',
     loginTitle:'Log in', loginSub:'An account keeps your order history and delivery details ready for next time.',
     fieldPassword:'Password', forgotPasswordLink:'Forgot password?', loginBtn:'Log in', newHere:'New here?', createAccount:'Create an account', continueGuest:'Continue without an account',
+    signupPerksTitle:'Register for exciting offers', signupPerksSub:'Plus refer & earn 0.200 BHD per successful referral',
     resetTitle:'Reset your password', resetSub:"Enter your account email and we'll send a reset link.", sendResetBtn:'Send reset link', backToLogin:'← Back to log in',
     chooseNewPwTitle:'Choose a new password', resettingPwFor:'Resetting the password for', fieldNewPassword:'New password (min 6 characters)', setNewPwBtn:'Set new password',
     registerTitle:'Create your account', registerSub:'Takes 20 seconds — just enough to fill your order in one tap next time.',
@@ -2110,6 +2150,7 @@ const I18N = {
     navShop:'المتجر', navCategories:'الفئات', navReviews:'التقييمات', navAbout:'من نحن', navLogin:'تسجيل الدخول', navCart:'السلة',
     heroEyebrowDefault:'اطلب أونلاين، واحصل عليه بسهولة',
     acctOrders:'📦 طلباتي', acctAddresses:'🏠 العناوين المحفوظة', acctProfile:'⚙️ الملف الشخصي', acctLogout:'↩ تسجيل الخروج',
+    acctReferEarn:'ادعُ واربح', acctReferEarnSub:'اربح 0.200 دينار عن كل تسجيل ناجح',
     eyebrowHandpicked:'مختارات خاصة', headFeatured:'مميزات هذا الأسبوع', subFeatured:'قائمة قصيرة نرشحها لكم بأنفسنا.',
     eyebrowCrowd:'الأكثر طلبًا', headBestsellers:'الأكثر مبيعًا', subBestsellers:'ما يضيفه أهل البحرين إلى سلتهم باستمرار.',
     eyebrowShopByCat:'تسوق حسب الفئة', headFindGadget:'اعثر على أداتك المفضلة القادمة', subFindGadget:'تصفح ما يشتريه الناس في البحرين الآن.',
@@ -2135,6 +2176,7 @@ const I18N = {
     qrDoLater:'سأفعل ذلك لاحقًا', confirmTitle:'تم استلام الطلب', confirmWaBtn:'📲 المتابعة عبر واتساب', confirmAnyQuery:'لديك استفسار؟', confirmDone:'تم',
     loginTitle:'تسجيل الدخول', loginSub:'يحتفظ الحساب بسجل طلباتك وتفاصيل التوصيل جاهزة للمرة القادمة.',
     fieldPassword:'كلمة المرور', forgotPasswordLink:'نسيت كلمة المرور؟', loginBtn:'تسجيل الدخول', newHere:'جديد هنا؟', createAccount:'إنشاء حساب', continueGuest:'المتابعة بدون حساب',
+    signupPerksTitle:'سجّل واحصل على عروض حصرية', signupPerksSub:'وادعُ أصدقاءك واربح 0.200 دينار عن كل إحالة ناجحة',
     resetTitle:'إعادة تعيين كلمة المرور', resetSub:'أدخل بريد حسابك وسنرسل لك رابط إعادة التعيين.', sendResetBtn:'إرسال رابط إعادة التعيين', backToLogin:'← العودة لتسجيل الدخول',
     chooseNewPwTitle:'اختر كلمة مرور جديدة', resettingPwFor:'إعادة تعيين كلمة المرور لـ', fieldNewPassword:'كلمة المرور الجديدة (6 أحرف على الأقل)', setNewPwBtn:'تعيين كلمة المرور الجديدة',
     registerTitle:'إنشاء حسابك', registerSub:'تستغرق 20 ثانية فقط — لملء طلبك بضغطة واحدة في المرة القادمة.',
@@ -3372,6 +3414,7 @@ function openCheckout(){
   document.getElementById('checkoutSubmitBtn').disabled = false;
   document.getElementById('submitBtnSpinner').classList.remove('show');
   document.getElementById('guestBanner').style.display = GUEST_MODE ? 'block' : 'none';
+  document.getElementById('guestPerksBanner').style.display = GUEST_MODE ? 'flex' : 'none';
   document.getElementById('custEmailField').style.display = GUEST_MODE ? 'block' : 'none';
   document.getElementById('custName').value = CUSTOMER ? CUSTOMER.name || '' : '';
   document.getElementById('custPhone').value = CUSTOMER ? CUSTOMER.phone || '' : '';
