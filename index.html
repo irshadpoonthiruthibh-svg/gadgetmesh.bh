@@ -211,7 +211,7 @@
   }
   header.scrolled{border-color:var(--line); box-shadow:0 2px 16px rgba(28,28,30,0.05);}
   nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1180px;margin:0 auto;}
-  .logo{display:flex;align-items:center;gap:9px;}
+  .logo{display:flex;align-items:center;gap:4px;}
   .logo .mark{
     width:30px;height:30px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
@@ -227,6 +227,55 @@
   .menu-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
   .menu-toggle.open span:nth-child(2){opacity:0;}
   .menu-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+
+  /* ---------- Mobile app-style header row: hamburger + search | centered logo | bell + cart ---------- */
+  .nav-left-mobile,.nav-right-mobile{display:none;}
+  .icon-btn{
+    position:relative;background:none;border:1px solid var(--line);border-radius:10px;width:38px;height:38px;
+    display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;flex-shrink:0;padding:0;
+    flex-direction:row;gap:0;
+  }
+  .icon-btn:hover{border-color:var(--blush-deep);}
+  .icon-btn .badge-corner{
+    position:absolute;top:-6px;right:-6px;background:var(--blush);color:var(--blush-ink);border-radius:50%;
+    width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:800;
+    border:2px solid #fff;
+  }
+  .icon-btn .ham-lines{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+  .icon-btn .ham-lines span{width:17px;height:2px;background:var(--ink);display:block;transition:transform .2s ease, opacity .2s ease;}
+  .icon-btn.open .ham-lines span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+  .icon-btn.open .ham-lines span:nth-child(2){opacity:0;}
+  .icon-btn.open .ham-lines span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+  .notif-panel{
+    display:none;position:absolute;top:56px;right:14px;width:min(320px,88vw);background:#fff;border:1px solid var(--line);
+    border-radius:14px;box-shadow:0 12px 32px rgba(28,28,30,0.14);z-index:250;overflow:hidden;
+  }
+  .notif-panel.show{display:block;}
+  .notif-panel h4{margin:0;padding:14px 16px 10px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);border-bottom:1px solid var(--line);}
+  .notif-panel .notif-item{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .notif-panel .notif-item:last-child{border-bottom:none;}
+  .notif-panel .notif-item:hover{background:var(--paper-soft);}
+  .notif-panel .notif-item .t{font-weight:700;font-size:13px;margin-bottom:2px;}
+  .notif-panel .notif-item .s{font-size:12px;color:var(--ink-soft);}
+  .notif-panel .notif-empty{padding:20px 16px;text-align:center;font-size:13px;color:var(--ink-soft);}
+  .header-search-bar{
+    display:none; align-items:center; gap:10px; padding:0 24px 16px; max-width:1180px; margin:0 auto;
+  }
+  .header-search-bar.show{display:flex;}
+  .header-search-bar input{
+    flex:1; padding:12px 16px; border:1.5px solid var(--line); border-radius:12px; font-family:inherit; font-size:14.5px;
+    background:var(--paper-soft);
+  }
+  .header-search-bar input:focus{outline:none;border-color:var(--blush-deep);background:#fff;}
+  .header-search-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-soft);padding:6px;flex-shrink:0;}
+  @media (max-width:760px){ .header-search-bar{padding:0 16px 14px;} }
+  @media (max-width:760px){
+    nav{position:relative;justify-content:center;padding:14px 16px;}
+    .nav-left-mobile{display:flex;gap:8px;position:absolute;left:14px;top:50%;transform:translateY(-50%);}
+    .nav-right-mobile{display:flex;gap:8px;position:absolute;right:14px;top:50%;transform:translateY(-50%);}
+    .nav-right{display:none;}
+    .logo .word{font-size:17px;}
+  }
   .mobile-menu{display:none;flex-direction:column;padding:6px 24px 18px;background:#fff;border-top:1px solid var(--line);}
   .mobile-menu a{padding:12px 4px;font-weight:600;font-size:15px;border-bottom:1px solid var(--line);}
   .mobile-menu.open{display:flex;}
@@ -418,8 +467,9 @@
   .top-cat-item{display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0;cursor:pointer;width:64px;}
   .top-cat-item .avatar{
     width:56px;height:56px;border-radius:50%;background:var(--paper-soft);display:flex;align-items:center;justify-content:center;
-    font-size:24px;border:2px solid var(--blush);transition:transform .18s ease,border-color .18s ease;
+    font-size:24px;border:2px solid var(--blush);transition:transform .18s ease,border-color .18s ease;overflow:hidden;
   }
+  .top-cat-item .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
   .top-cat-item:hover .avatar{transform:scale(1.06);border-color:var(--blush-deep);}
   .top-cat-item .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;text-align:center;color:var(--ink);white-space:nowrap;}
 
@@ -460,7 +510,8 @@
     border:1px solid transparent; transition:transform .2s ease, border-color .2s ease, background .2s ease;
   }
   .cat-card:hover{transform:translateY(-4px);border-color:var(--blush);background:#fff;box-shadow:var(--shadow-sm);}
-  .cat-card .ic{font-size:28px;margin-bottom:10px;}
+  .cat-card .ic{font-size:28px;margin-bottom:10px;width:56px;height:56px;border-radius:50%;overflow:hidden;margin-left:auto;margin-right:auto;display:flex;align-items:center;justify-content:center;background:#fff;}
+  .cat-card .ic img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
   .cat-card .n{font-weight:700;font-size:14px;}
 
   .toolbar-inner{
@@ -807,6 +858,12 @@
 <div class="announce-bar" id="announceBar"><span id="announceBarText"></span></div>
 <header id="siteHeader">
   <nav>
+    <div class="nav-left-mobile">
+      <button class="icon-btn" id="menuToggleMobile" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span class="ham-lines"><span></span><span></span><span></span></span>
+      </button>
+      <button class="icon-btn" onclick="toggleHeaderSearch()" aria-label="Search">🔍</button>
+    </div>
     <div class="logo">
       <div class="mark">
         <svg viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -816,7 +873,7 @@
           <circle cx="24" cy="27" r="1.6" fill="#FFADAD"/>
         </svg>
       </div>
-      <div><span class="word">GADGETMESH</span><span class="sub">Bahrain</span></div>
+      <div><span class="word">GADGETMESH</span></div>
     </div>
     <div class="nav-links">
       <a href="#shop" data-i18n="navShop">Shop</a>
@@ -825,6 +882,7 @@
       <a href="#about" data-i18n="navAbout">About</a>
     </div>
     <div class="nav-right">
+      <button class="icon-btn" onclick="toggleHeaderSearch()" aria-label="Search">🔍</button>
       <div class="lang-wrap">
         <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Language">🌐</button>
         <div class="lang-menu" id="langMenu">
@@ -835,10 +893,29 @@
       <div class="acct-wrap">
         <button class="acct-btn" id="acctBtn" onclick="onAcctBtnClick()" aria-label="Account">👤</button>
       </div>
+      <button class="icon-btn notif-btn" onclick="toggleNotifPanel(event)" aria-label="Notifications">
+        🔔<span class="badge-corner" id="notifCount" style="display:none;">0</span>
+      </button>
       <button class="cart-btn" onclick="openCart()"><span data-i18n="navCart">Cart</span> <span class="badge-count" id="cartCount">0</span></button>
       <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
+    <div class="nav-right-mobile">
+      <button class="icon-btn notif-btn" onclick="toggleNotifPanel(event)" aria-label="Notifications">
+        🔔<span class="badge-corner" id="notifCountMobile" style="display:none;">0</span>
+      </button>
+      <button class="icon-btn" onclick="openCart()" aria-label="Cart">
+        🛒<span class="badge-corner" id="cartCountMobile">0</span>
+      </button>
+    </div>
+    <div class="notif-panel" id="notifPanel">
+      <h4 data-i18n="notifHeading">Offers &amp; updates</h4>
+      <div id="notifPanelBody"><div class="notif-empty" data-i18n="notifLoading">Loading…</div></div>
+    </div>
   </nav>
+  <div class="header-search-bar" id="headerSearchBar">
+    <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search products…" oninput="onHeaderSearchInput()">
+    <button class="header-search-close" onclick="closeHeaderSearch()" aria-label="Close search">✕</button>
+  </div>
   <div class="mobile-menu" id="mobileMenu">
     <a href="#shop" onclick="closeMobileMenu()" data-i18n="navShop">Shop</a>
     <a href="#categories" onclick="closeMobileMenu()" data-i18n="navCategories">Categories</a>
@@ -930,7 +1007,6 @@
       <p id="resultCount" data-i18n="loadingProducts">Loading products…</p>
     </div>
     <div class="toolbar-inner reveal">
-      <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search products…" oninput="renderProducts()">
       <div id="categoryChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
       <span id="dealsFilterChip" class="chip active" style="display:none;align-items:center;gap:6px;" onclick="clearDealsFilter()">
         <span data-i18n="dealsChipLabel">Under 4.900 BHD</span> ✕
@@ -1046,10 +1122,14 @@
           <button type="button" onclick="removePromoCode()" style="background:none;border:none;color:#B23B2E;font-weight:700;font-size:12.5px;cursor:pointer;" data-i18n="removeBtn">Remove</button>
         </div>
         <p id="promoError" style="color:#B23B2E;font-size:12.5px;margin:6px 0 0;"></p>
+        <div id="promoHintRow" style="display:none;align-items:center;gap:8px;margin-top:6px;">
+          <span id="promoHintText" style="color:#2C6B2F;font-size:12.5px;font-weight:600;flex:1;"></span>
+          <button type="button" onclick="applyBestPromoQuick()" style="background:none;border:1px solid #2C6B2F;color:#2C6B2F;font-weight:700;font-size:11.5px;padding:3px 12px;border-radius:14px;cursor:pointer;white-space:nowrap;" data-i18n="applyBtn">Apply</button>
+        </div>
       </div>
       <div class="field" id="walletUseWrap" style="display:none;background:#FFF8F5;border:1px solid var(--line);border-radius:10px;padding:12px 14px;">
         <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="useWalletCheckbox" onchange="updateCheckoutTotalDisplay()">
+          <input type="checkbox" id="useWalletCheckbox" onchange="updateCheckoutTotalDisplay()" style="width:18px;height:18px;flex:0 0 18px;padding:0;">
           <span data-i18n="useWalletLabel">Use my wallet balance</span>
           <span id="walletAvailableLabel" style="color:var(--ink-soft);font-weight:500;font-size:12.5px;"></span>
         </label>
@@ -1910,6 +1990,7 @@ const I18N = {
     eyebrowHandpicked:'Handpicked', headFeatured:'Featured this week', subFeatured:'A short list we personally rate — swipe through.',
     eyebrowCrowd:'Crowd favorites', headBestsellers:'Best sellers', subBestsellers:'What Bahrain keeps adding to cart.',
     eyebrowShopByCat:'Shop by category', headFindGadget:'Find your next favorite gadget', subFindGadget:'Browse what people in Bahrain are buying right now.',
+    notifHeading:'Offers & updates', notifLoading:'Loading…', notifEmpty:'No active offers right now — check back soon!',
     eyebrowCatalogue:'Full catalogue', headAllProducts:'All products', loadingProducts:'Loading products…', searchPlaceholder:'Search products…',
     eyebrowLovedLocally:'Loved locally', headReviews:'What Bahrain is saying',
     newsletterHead:'Get early access to new drops', newsletterSub:'One short email a week — new gadgets, restocks, and Bahrain-only offers.', newsletterBtn:'Subscribe',
@@ -1973,6 +2054,7 @@ const I18N = {
     eyebrowHandpicked:'مختارات خاصة', headFeatured:'مميزات هذا الأسبوع', subFeatured:'قائمة قصيرة نرشحها لكم بأنفسنا.',
     eyebrowCrowd:'الأكثر طلبًا', headBestsellers:'الأكثر مبيعًا', subBestsellers:'ما يضيفه أهل البحرين إلى سلتهم باستمرار.',
     eyebrowShopByCat:'تسوق حسب الفئة', headFindGadget:'اعثر على أداتك المفضلة القادمة', subFindGadget:'تصفح ما يشتريه الناس في البحرين الآن.',
+    notifHeading:'العروض والتحديثات', notifLoading:'جارِ التحميل…', notifEmpty:'لا توجد عروض نشطة حاليًا — تحقق لاحقًا!',
     eyebrowCatalogue:'الكتالوج الكامل', headAllProducts:'جميع المنتجات', loadingProducts:'جارِ تحميل المنتجات…', searchPlaceholder:'ابحث عن المنتجات…',
     eyebrowLovedLocally:'محبوب محليًا', headReviews:'ماذا يقول أهل البحرين',
     newsletterHead:'احصل على وصول مبكر للمنتجات الجديدة', newsletterSub:'رسالة قصيرة أسبوعيًا — منتجات جديدة، إعادة تخزين، وعروض حصرية للبحرين.', newsletterBtn:'اشترك',
@@ -2332,7 +2414,7 @@ function buildCategoryCards(){
   const cats = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
   document.getElementById('categoryCardGrid').innerHTML = cats.map(c => `
     <div class="cat-card" onclick="setCategory('${c.replace(/'/g,"\\'")}'); document.getElementById('shop').scrollIntoView({behavior:'smooth'});">
-      <div class="ic">${CATEGORY_ICONS[c] || '✨'}</div>
+      <div class="ic">${categoryIconHtml(c)}</div>
       <div class="n">${catLabel(c)}</div>
     </div>
   `).join('');
@@ -2344,10 +2426,19 @@ function buildTopCategoryStrip(){
   if(!cats.length){ strip.innerHTML = ''; return; }
   strip.innerHTML = cats.map(c => `
     <div class="top-cat-item" onclick="setCategory('${c.replace(/'/g,"\\'")}'); document.getElementById('shop').scrollIntoView({behavior:'smooth'});">
-      <div class="avatar">${CATEGORY_ICONS[c] || '✨'}</div>
+      <div class="avatar">${categoryIconHtml(c)}</div>
       <div class="lbl">${catLabel(c)}</div>
     </div>
   `).join('');
+}
+// A category's "picture" is simply the first in-stock product photo from
+// that category — real inventory images, always in sync, no external
+// image hosting or licensing to worry about. Falls back to an emoji only
+// if a category genuinely has no product photo available yet.
+function categoryIconHtml(cat){
+  const withImage = PRODUCTS.find(p => p.category === cat && p.images && p.images[0]);
+  if(withImage) return `<img src="${withImage.images[0]}" alt="${catLabel(cat)}" loading="lazy">`;
+  return CATEGORY_ICONS[cat] || '✨';
 }
 function setCategory(c){ activeCategory = c; buildCategoryChips(); renderProducts(); }
 
@@ -2501,8 +2592,10 @@ function flyToCart(sourceEl, imgUrl){
 function bumpCartIcon(){
   const cartBtn = document.querySelector('.cart-btn');
   const badge = document.getElementById('cartCount');
+  const mobileBadge = document.getElementById('cartCountMobile');
   if(cartBtn){ cartBtn.classList.remove('bump'); void cartBtn.offsetWidth; cartBtn.classList.add('bump'); setTimeout(()=>cartBtn.classList.remove('bump'), 500); }
   if(badge){ badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); setTimeout(()=>badge.classList.remove('bump'), 500); }
+  if(mobileBadge){ mobileBadge.classList.remove('bump'); void mobileBadge.offsetWidth; mobileBadge.classList.add('bump'); setTimeout(()=>mobileBadge.classList.remove('bump'), 500); }
 }
 function popButton(el){
   if(!el) return;
@@ -2880,7 +2973,10 @@ window.addEventListener('popstate', () => {
 });
 
 function renderCart(){
-  document.getElementById('cartCount').textContent = CART.reduce((s,i)=>s+i.qty,0);
+  const count = CART.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cartCount').textContent = count;
+  const mobileBadge = document.getElementById('cartCountMobile');
+  if(mobileBadge) mobileBadge.textContent = count;
   const wrap = document.getElementById('cartItems');
   const cartItemName = (i) => (currentLang === 'ar' && translationCache.ar[i.name]) ? translationCache.ar[i.name] : i.name;
   wrap.innerHTML = CART.length ? CART.map(i => `
@@ -2980,6 +3076,7 @@ async function applyPromoCode(){
     document.getElementById('promoAppliedRow').style.display = 'flex';
     document.getElementById('promoAppliedText').textContent = `${data.code} — ${Number(data.discount).toFixed(3)} BHD ${T('promoDiscountSuffix')}`;
     document.getElementById('promoBanner').classList.remove('show');
+    renderPromoHint();
     updateCheckoutTotalDisplay();
   }catch(err){ errEl.textContent = T('promoNetworkError'); }
   finally{ btn.disabled = false; }
@@ -3012,6 +3109,7 @@ async function loadCheckoutPromoBanner(){
 function renderPromoBanner(){
   if(!BEST_PROMO_OFFER || !CUSTOMER){
     document.getElementById('promoBanner').classList.remove('show');
+    renderPromoHint();
     return;
   }
   const offer = BEST_PROMO_OFFER;
@@ -3037,6 +3135,33 @@ function renderPromoBanner(){
   }
   codeEl.textContent = offer.code;
   document.getElementById('promoBanner').classList.add('show');
+  renderPromoHint();
+}
+// Small green line under the promo code field — appears the moment the
+// cart already qualifies, so the customer doesn't have to hunt for a code.
+function renderPromoHint(){
+  const hintRow = document.getElementById('promoHintRow');
+  if(!hintRow) return;
+  if(!BEST_PROMO_OFFER || !CUSTOMER || APPLIED_PROMO){
+    hintRow.style.display = 'none';
+    return;
+  }
+  const offer = BEST_PROMO_OFFER;
+  const minOrder = Number(offer.minOrderValue || 0);
+  if(cartTotal() < minOrder){
+    hintRow.style.display = 'none';
+    return;
+  }
+  const isPercent = offer.discountType === 'percent';
+  const discountLabel = isPercent ? `${Number(offer.discountValue)}%` : `${Number(offer.discountValue).toFixed(3)} BHD`;
+  document.getElementById('promoHintText').textContent =
+    `✓ You can apply code ${offer.code} for ${discountLabel} off — cart above ${minOrder.toFixed(3)} BHD`;
+  hintRow.style.display = 'flex';
+}
+function applyBestPromoQuick(){
+  if(!BEST_PROMO_OFFER) return;
+  document.getElementById('promoCodeInput').value = BEST_PROMO_OFFER.code;
+  applyPromoCode();
 }
 function onPromoBannerClick(){
   if(!BEST_PROMO_OFFER) return;
@@ -3398,12 +3523,87 @@ window.addEventListener('scroll', () => {
 
 function toggleMobileMenu(){
   document.getElementById('menuToggle').classList.toggle('open');
+  const mobileBtn = document.getElementById('menuToggleMobile');
+  if(mobileBtn) mobileBtn.classList.toggle('open');
   document.getElementById('mobileMenu').classList.toggle('open');
 }
 function closeMobileMenu(){
   document.getElementById('menuToggle').classList.remove('open');
+  const mobileBtn = document.getElementById('menuToggleMobile');
+  if(mobileBtn) mobileBtn.classList.remove('open');
   document.getElementById('mobileMenu').classList.remove('open');
 }
+function toggleHeaderSearch(){
+  const bar = document.getElementById('headerSearchBar');
+  const opening = !bar.classList.contains('show');
+  bar.classList.toggle('show', opening);
+  if(opening){
+    setTimeout(() => document.getElementById('searchInput').focus(), 80);
+  }
+}
+function closeHeaderSearch(){
+  document.getElementById('headerSearchBar').classList.remove('show');
+}
+function onHeaderSearchInput(){
+  renderProducts();
+  const q = document.getElementById('searchInput').value.trim();
+  if(q){
+    const shop = document.getElementById('shop');
+    if(shop) shop.scrollIntoView({ behavior:'smooth' });
+  }
+}
+let notifLoaded = false;
+async function toggleNotifPanel(evt){
+  if(evt) evt.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  const isOpening = !panel.classList.contains('show');
+  panel.classList.toggle('show', isOpening);
+  if(isOpening && !notifLoaded){
+    await loadNotifPanel();
+  }
+}
+async function loadNotifPanel(){
+  const body = document.getElementById('notifPanelBody');
+  notifLoaded = true;
+  try{
+    const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ action:'listActivePromoCodes' }) });
+    const data = await res.json();
+    const codes = data.promoCodes || [];
+    if(!codes.length){
+      body.innerHTML = `<div class="notif-empty">${T('notifEmpty')}</div>`;
+      setNotifBadge(0);
+      return;
+    }
+    body.innerHTML = codes.map(c => {
+      const isPercent = c.discountType === 'percent';
+      const discountLabel = isPercent ? `${Number(c.discountValue)}%` : `${Number(c.discountValue).toFixed(3)} BHD`;
+      const minOrder = Number(c.minOrderValue || 0);
+      const sub = minOrder > 0
+        ? `Spend ${minOrder.toFixed(3)} BHD, get ${discountLabel} off — code ${c.code}`
+        : `Get ${discountLabel} off with code ${c.code}`;
+      return `<div class="notif-item" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'});toggleNotifPanel();">
+        <div class="t">🎁 Special offer</div>
+        <div class="s">${sub}</div>
+      </div>`;
+    }).join('');
+    setNotifBadge(codes.length);
+  }catch(err){
+    body.innerHTML = `<div class="notif-empty">${T('notifEmpty')}</div>`;
+  }
+}
+function setNotifBadge(count){
+  [document.getElementById('notifCount'), document.getElementById('notifCountMobile')].forEach(el => {
+    if(!el) return;
+    el.textContent = count;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  if(!panel || !panel.classList.contains('show')) return;
+  if(panel.contains(e.target) || e.target.closest('.notif-btn')) return;
+  panel.classList.remove('show');
+});
 
 // Intro splash: show briefly on first load, skip on repeat visits this session
 (function(){
@@ -3601,6 +3801,7 @@ async function loadSettings(){
 
 renderCart();
 loadProducts().then(loadHomeTestimonials);
+loadNotifPanel(); // prefetch so the bell badge count is correct even before the panel is opened
 loadSettings();
 startPdpPromoRotation();
 observeReveal();
