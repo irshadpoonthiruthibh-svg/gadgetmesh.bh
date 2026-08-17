@@ -355,7 +355,7 @@
   html[dir="rtl"] .acct-menu{right:auto;left:24px;}
   @media (max-width:760px){ html[dir="rtl"] .acct-menu{left:12px;right:12px;} }
   html[dir="rtl"] .forgot-link{left:0;right:auto;}
-  html[dir="rtl"] .close-x{right:auto;left:18px;}
+
   html[dir="rtl"] .drawer{right:auto;left:0;transform:translateX(-100%);}
   html[dir="rtl"] .drawer.show{transform:translateX(0);}
   html[dir="rtl"] .card-badges{right:auto;left:10px;}
@@ -417,7 +417,7 @@
     color:var(--blush-ink);
   }
   .eyebrow-standalone .dot{width:7px;height:7px;border-radius:50%;background:var(--blush);flex-shrink:0;}
-  .hero-full{position:relative;width:100%;aspect-ratio:2/1;max-height:560px;overflow:hidden;background:var(--paper-soft);}
+  .hero-full{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;background:var(--paper-soft);}
   .hs-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .7s ease;z-index:1;}
   .hs-slide.active{opacity:1;z-index:2;}
   .hs-next-circle{
@@ -563,6 +563,8 @@
   .card-badge.bestseller{background:var(--ink);color:#fff;}
   .card-badge.low{background:#B23B2E;color:#fff;}
   .card-badge.out{background:#6B6B70;color:#fff;}
+  .stock-inline-row{margin:-2px 0 8px;}
+  .stock-inline-row .card-badge.low{display:inline-block;}
   @keyframes gmStockBlink{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
   .blink-stock{animation:gmStockBlink 1.2s ease-in-out infinite;}
   @media (prefers-reduced-motion: reduce){ .blink-stock{animation:none!important;} }
@@ -631,8 +633,18 @@
   .pdp-crumb{font-size:12.5px;color:var(--ink-soft);}
   .pdp-body{max-width:1180px;margin:0 auto;padding:40px 24px 90px;}
   .pdp-grid{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:start;}
-  .pdp-gallery-main{background:#fff;border-radius:20px;border:1px solid var(--line);overflow:hidden;aspect-ratio:1/1;position:relative;}
+  .pdp-gallery-main{background:#fff;border-radius:20px;border:1px solid var(--line);overflow:hidden;aspect-ratio:1/1;position:relative;cursor:zoom-in;}
   .pdp-gallery-main img{width:100%;height:100%;object-fit:cover;}
+  .pdp-zoom-hint{position:absolute;bottom:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(28,28,30,0.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;pointer-events:none;}
+
+  /* ---------- image preview / zoom lightbox ---------- */
+  .img-zoom-overlay{position:fixed;inset:0;background:rgba(10,10,10,0.94);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
+  .img-zoom-overlay.show{display:flex;}
+  .img-zoom-overlay .close-x{position:fixed;top:16px;right:18px;margin:0;float:none;background:rgba(255,255,255,0.12);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;z-index:2;display:flex;align-items:center;justify-content:center;}
+  .img-zoom-hint-bar{position:fixed;top:18px;left:18px;right:70px;color:rgba(255,255,255,0.75);font-size:12px;text-align:left;}
+  .img-zoom-stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;}
+  .img-zoom-stage img{max-width:92vw;max-height:88vh;object-fit:contain;user-select:none;-webkit-user-drag:none;transition:transform .05s linear;will-change:transform;}
+  @media (max-width:640px){ .img-zoom-hint-bar{font-size:11px;top:16px;} }
   .pdp-thumbs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
   .pdp-thumb{width:70px;height:70px;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#fff;flex-shrink:0;}
   .pdp-thumb img{width:100%;height:100%;object-fit:cover;}
@@ -735,7 +747,7 @@
 
   .modal-overlay{position:fixed;inset:0;background:rgba(28,28,30,0.55);z-index:510;display:none;align-items:center;justify-content:center;padding:16px;}
   .modal-overlay.show{display:flex;}
-  .modal{background:#fff;border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:26px;position:relative;}
+  .modal{background:#fff;border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:26px;position:relative;}
   .modal h3{margin-top:0;}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--ink);}
@@ -756,7 +768,8 @@
   .btn-spinner.show{display:inline-block;}
   @keyframes btnspin{to{transform:rotate(360deg);}}
   .auth-error{color:#B23B2E;font-size:12.5px;margin:-6px 0 12px;min-height:14px;}
-  .close-x{position:absolute;top:16px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);}
+  .close-x{position:sticky;top:0;float:right;margin:-8px -8px 0 0;left:auto;right:auto;width:36px;height:36px;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);border:none;border-radius:50%;font-size:18px;cursor:pointer;color:var(--ink);z-index:5;display:flex;align-items:center;justify-content:center;touch-action:manipulation;box-shadow:0 1px 4px rgba(28,28,30,0.1);}
+  html[dir="rtl"] .close-x{float:left;margin:-8px 0 0 -8px;}
   .confirm-box{text-align:center;padding:10px 0;}
   .confirm-box .checkmark{width:64px;height:64px;border-radius:50%;background:var(--blush);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;}
   .wa-btn{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:white;border:none;border-radius:12px;padding:13px 22px;font-weight:700;text-decoration:none;margin-top:10px;}
@@ -1183,6 +1196,14 @@
   </div>
 </div>
 
+<div class="img-zoom-overlay" id="imgZoomOverlay">
+  <button class="close-x img-zoom-close" onclick="closeImageZoom()">✕</button>
+  <div class="img-zoom-hint-bar" id="imgZoomHintBar">Pinch or scroll to zoom · Drag to pan · Double-tap to reset</div>
+  <div class="img-zoom-stage" id="imgZoomStage">
+    <img id="imgZoomImg" src="" alt="">
+  </div>
+</div>
+
 <div class="modal-overlay" id="paymentMaintOverlay">
   <div class="modal" style="max-width:380px;text-align:center;position:relative;">
     <button class="close-x" onclick="closePaymentMaint()">✕</button>
@@ -1317,7 +1338,10 @@
   <div class="pdp-body">
     <div class="pdp-grid">
       <div>
-        <div class="pdp-gallery-main"><img id="pdpMainImg" src="" alt=""></div>
+        <div class="pdp-gallery-main" id="pdpGalleryMain" onclick="openImageZoom()">
+          <img id="pdpMainImg" src="" alt="">
+          <div class="pdp-zoom-hint">🔍</div>
+        </div>
         <div class="pdp-thumbs" id="pdpThumbs"></div>
       </div>
       <div class="pdp-info">
@@ -1433,6 +1457,38 @@ const CONFIG = {
   BENEFITPAY_QR_IMAGE: 'assets/benefitpay-qr.png'
 };
 
+/* ================= body scroll lock (used by every overlay/modal/popup) =================
+   Plain `overflow:hidden` on <body> does not reliably stop background scrolling on mobile
+   Safari/Chrome, which is what caused overlays (checkout, cart, login, etc.) to let the page
+   scroll behind them and made their close (✕) buttons feel unresponsive/hard to tap while
+   scrolling. Locking with position:fixed pins the body in place properly on all mobile browsers,
+   and we restore the exact scroll position on unlock. A counter supports overlays stacking
+   (e.g. auth opening on top of cart) without unlocking too early. */
+let SCROLL_LOCK_COUNT = 0;
+let SCROLL_LOCK_Y = 0;
+function lockBodyScroll(){
+  if(SCROLL_LOCK_COUNT === 0){
+    SCROLL_LOCK_Y = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = (-SCROLL_LOCK_Y) + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+  }
+  SCROLL_LOCK_COUNT++;
+}
+function unlockBodyScroll(){
+  SCROLL_LOCK_COUNT = Math.max(0, SCROLL_LOCK_COUNT - 1);
+  if(SCROLL_LOCK_COUNT === 0){
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, SCROLL_LOCK_Y);
+  }
+}
+
 let PRODUCTS = [];
 let CART = JSON.parse(localStorage.getItem('gm_cart') || '[]');
 let CUSTOMER = JSON.parse(localStorage.getItem('gm_customer') || 'null');
@@ -1505,9 +1561,10 @@ document.addEventListener('click', (e) => {
 function openMyOrders(tab){
   document.getElementById('acctMenu').classList.remove('show');
   document.getElementById('ordersOverlay').classList.add('show');
+  lockBodyScroll();
   switchAcctTab(tab || 'orders');
 }
-function closeMyOrders(){ document.getElementById('ordersOverlay').classList.remove('show'); }
+function closeMyOrders(){ document.getElementById('ordersOverlay').classList.remove('show'); unlockBodyScroll(); }
 function switchAcctTab(tab){
   ['orders','addresses','referrals','profile'].forEach(t => {
     document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
@@ -1839,9 +1896,11 @@ async function subscribeNewsletter(){
 function openAuth(panel){
   showAuthPanel(panel || 'login');
   document.getElementById('authOverlay').classList.add('show');
+  lockBodyScroll();
 }
 function closeAuth(){
   document.getElementById('authOverlay').classList.remove('show');
+  unlockBodyScroll();
   pendingAfterAuth = null;
 }
 function showAuthPanel(panel){
@@ -2165,7 +2224,8 @@ async function translateProductsIfNeeded(products){
 
 function setLanguage(lang){
   localStorage.setItem('gm_lang', lang);
-  document.getElementById('langPopupOverlay').classList.remove('show');
+  const langPopup = document.getElementById('langPopupOverlay');
+  if(langPopup.classList.contains('show')){ langPopup.classList.remove('show'); unlockBodyScroll(); }
   document.getElementById('langMenu').classList.remove('show');
   applyLanguage(lang);
 }
@@ -2503,8 +2563,7 @@ function productCardHtml(p){
     pct > 0 && !outOfStock ? `<span class="card-badge sale">🏷️ ${pct}% ${T('saleOff')}</span>` : '',
     p.featured ? `<span class="card-badge featured">${T('featuredBadge')}</span>` : '',
     p.bestseller ? `<span class="card-badge bestseller">${T('bestsellerBadge')}</span>` : '',
-    outOfStock ? `<span class="card-badge out">${T('outOfStock')}</span>` : '',
-    lowStock ? `<span class="card-badge low blink-stock">${T('onlyLeft').replace('{n}', stock)}</span>` : ''
+    outOfStock ? `<span class="card-badge out">${T('outOfStock')}</span>` : ''
   ].join('');
   return `
     <div class="card ${outOfStock?'out-of-stock':''}" onclick="openProduct('${p.id}')">
@@ -2514,6 +2573,7 @@ function productCardHtml(p){
         <div class="cat">${catLabel(p.category)}</div>
         <div class="name">${pName(p)}</div>
         ${Number(p.reviewCount) > 0 ? `<div class="rating-row">${renderStars(p.avgRating, 'small')}<span>(${p.reviewCount})</span></div>` : ''}
+        ${lowStock ? `<div class="stock-inline-row"><span class="card-badge low blink-stock" style="position:static;">${T('onlyLeft').replace('{n}', stock)}</span></div>` : ''}
         <div class="price-row">
           ${priceHtml(p)}
           ${outOfStock
@@ -2698,7 +2758,7 @@ function openProduct(id){
   translateProductsIfNeeded([p]);
 
   document.getElementById('pdpOverlay').classList.add('show');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   window.scrollTo({top:0});
   if(location.hash !== `#/product/${id}`) history.pushState({pdp:id}, '', `#/product/${id}`);
 }
@@ -2732,6 +2792,108 @@ function setPdpImage(i){
   document.getElementById('pdpMainImg').src = PDP_PRODUCT.images[i] || PDP_PRODUCT.images[0];
   document.querySelectorAll('.pdp-thumb').forEach(t => t.classList.toggle('active', Number(t.dataset.i)===i));
 }
+
+/* ================= product image preview / zoom lightbox ================= */
+let ZOOM_SCALE = 1, ZOOM_PAN_X = 0, ZOOM_PAN_Y = 0;
+let ZOOM_POINTERS = new Map();
+let ZOOM_PINCH_START_DIST = 0, ZOOM_PINCH_START_SCALE = 1;
+let ZOOM_DRAGGING = false, ZOOM_DRAG_START = {x:0,y:0}, ZOOM_PAN_START = {x:0,y:0};
+const ZOOM_MIN = 1, ZOOM_MAX = 4, ZOOM_DOUBLE_TAP = 2.5;
+
+function openImageZoom(){
+  const srcImg = document.getElementById('pdpMainImg');
+  if(!srcImg || !srcImg.src) return;
+  const zoomImg = document.getElementById('imgZoomImg');
+  zoomImg.src = srcImg.src;
+  zoomImg.alt = srcImg.alt || '';
+  resetZoomTransform();
+  document.getElementById('imgZoomOverlay').classList.add('show');
+  lockBodyScroll();
+}
+function closeImageZoom(){
+  document.getElementById('imgZoomOverlay').classList.remove('show');
+  ZOOM_POINTERS.clear();
+  ZOOM_DRAGGING = false;
+  unlockBodyScroll();
+}
+function resetZoomTransform(){
+  ZOOM_SCALE = 1; ZOOM_PAN_X = 0; ZOOM_PAN_Y = 0;
+  applyZoomTransform();
+}
+function applyZoomTransform(){
+  const img = document.getElementById('imgZoomImg');
+  if(!img) return;
+  img.style.transform = `translate(${ZOOM_PAN_X}px, ${ZOOM_PAN_Y}px) scale(${ZOOM_SCALE})`;
+  img.style.cursor = ZOOM_SCALE > 1 ? 'grab' : 'zoom-in';
+}
+function zoomToggleAt(){
+  if(ZOOM_SCALE > 1){ resetZoomTransform(); }
+  else { ZOOM_SCALE = ZOOM_DOUBLE_TAP; ZOOM_PAN_X = 0; ZOOM_PAN_Y = 0; applyZoomTransform(); }
+}
+(function setupImageZoomHandlers(){
+  document.addEventListener('DOMContentLoaded', () => {
+    const stage = document.getElementById('imgZoomStage');
+    if(!stage) return;
+
+    stage.addEventListener('dblclick', (e) => { e.preventDefault(); zoomToggleAt(); });
+
+    stage.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.2 : -0.2;
+      ZOOM_SCALE = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, ZOOM_SCALE + delta));
+      if(ZOOM_SCALE === ZOOM_MIN){ ZOOM_PAN_X = 0; ZOOM_PAN_Y = 0; }
+      applyZoomTransform();
+    }, {passive:false});
+
+    let lastTapTime = 0;
+    stage.addEventListener('pointerdown', (e) => {
+      stage.setPointerCapture(e.pointerId);
+      ZOOM_POINTERS.set(e.pointerId, {x:e.clientX, y:e.clientY});
+      if(ZOOM_POINTERS.size === 1){
+        const now = Date.now();
+        if(now - lastTapTime < 300){ zoomToggleAt(); }
+        lastTapTime = now;
+        if(ZOOM_SCALE > 1){
+          ZOOM_DRAGGING = true;
+          ZOOM_DRAG_START = {x:e.clientX, y:e.clientY};
+          ZOOM_PAN_START = {x:ZOOM_PAN_X, y:ZOOM_PAN_Y};
+        }
+      } else if(ZOOM_POINTERS.size === 2){
+        ZOOM_DRAGGING = false;
+        const pts = [...ZOOM_POINTERS.values()];
+        ZOOM_PINCH_START_DIST = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y) || 1;
+        ZOOM_PINCH_START_SCALE = ZOOM_SCALE;
+      }
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if(!ZOOM_POINTERS.has(e.pointerId)) return;
+      ZOOM_POINTERS.set(e.pointerId, {x:e.clientX, y:e.clientY});
+      if(ZOOM_POINTERS.size === 2){
+        const pts = [...ZOOM_POINTERS.values()];
+        const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y) || 1;
+        ZOOM_SCALE = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, ZOOM_PINCH_START_SCALE * (dist / ZOOM_PINCH_START_DIST)));
+        applyZoomTransform();
+      } else if(ZOOM_DRAGGING && ZOOM_POINTERS.size === 1){
+        const dx = e.clientX - ZOOM_DRAG_START.x;
+        const dy = e.clientY - ZOOM_DRAG_START.y;
+        ZOOM_PAN_X = ZOOM_PAN_START.x + dx;
+        ZOOM_PAN_Y = ZOOM_PAN_START.y + dy;
+        applyZoomTransform();
+      }
+    });
+    function endZoomPointer(e){
+      ZOOM_POINTERS.delete(e.pointerId);
+      if(ZOOM_POINTERS.size < 2) ZOOM_PINCH_START_DIST = 0;
+      if(ZOOM_POINTERS.size === 0){
+        ZOOM_DRAGGING = false;
+        if(ZOOM_SCALE <= 1) resetZoomTransform();
+      }
+    }
+    stage.addEventListener('pointerup', endZoomPointer);
+    stage.addEventListener('pointercancel', endZoomPointer);
+    stage.addEventListener('pointerleave', endZoomPointer);
+  });
+})();
 
 function pdpChangeQty(delta){
   const stock = PDP_PRODUCT ? Number(PDP_PRODUCT.stock) : Infinity;
@@ -2955,7 +3117,7 @@ async function submitReview(){
 
 function closeProduct(){
   document.getElementById('pdpOverlay').classList.remove('show');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   PDP_PRODUCT = null;
   if(location.hash.startsWith('#/product/')) history.pushState({}, '', location.pathname + location.search);
 }
@@ -3001,8 +3163,8 @@ function renderCart(){
   if(currentLang === 'ar') translateProductsIfNeeded(CART.map(i => ({name:i.name})));
 }
 
-function openCart(){ document.getElementById('overlay').classList.add('show'); document.getElementById('drawer').classList.add('show'); }
-function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
+function openCart(){ document.getElementById('overlay').classList.add('show'); document.getElementById('drawer').classList.add('show'); lockBodyScroll(); }
+function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); unlockBodyScroll(); }
 
 const PAYMENT_METHODS = [
   { id:'card', get label(){ return T('payCardLabel'); }, get desc(){ return T('payCardDesc'); }, available:false },
@@ -3176,9 +3338,11 @@ function onPromoBannerClick(){
 }
 function openPaymentMaint(methodId){
   document.getElementById('paymentMaintOverlay').classList.add('show');
+  lockBodyScroll();
 }
 function closePaymentMaint(){
   document.getElementById('paymentMaintOverlay').classList.remove('show');
+  unlockBodyScroll();
 }
 function proceedWithCod(){
   const codRadio = document.querySelector('input[name=pay][value="cod"]');
@@ -3216,6 +3380,7 @@ function openCheckout(){
   checkoutSelectedAddressId = null;
   document.getElementById('saveAddrCheckWrap').style.display = 'none';
   document.getElementById('checkoutOverlay').classList.add('show');
+  lockBodyScroll();
   document.getElementById('useWalletCheckbox').checked = false;
   APPLIED_PROMO = null;
   document.getElementById('promoCodeInput').value = '';
@@ -3324,7 +3489,7 @@ function onCheckoutFieldsEdited(){
     document.getElementById('saveAddrCheckWrap').style.display = 'flex';
   }
 }
-function closeCheckout(){ document.getElementById('checkoutOverlay').classList.remove('show'); }
+function closeCheckout(){ document.getElementById('checkoutOverlay').classList.remove('show'); unlockBodyScroll(); }
 
 let pendingOrderPayload = null;
 let pendingOrderId = null;
@@ -3622,7 +3787,7 @@ function maybeShowLangPopup(){
   if(saved){
     applyLanguage(saved);
   } else {
-    setTimeout(() => document.getElementById('langPopupOverlay').classList.add('show'), 250);
+    setTimeout(() => { document.getElementById('langPopupOverlay').classList.add('show'); lockBodyScroll(); }, 250);
   }
 }
 
@@ -3634,6 +3799,7 @@ function observeReveal(){
 }
 
 window.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('imgZoomOverlay').classList.contains('show')) { closeImageZoom(); return; }
   if(e.key === 'Escape' && document.getElementById('pdpOverlay').classList.contains('show')) closeProduct();
   if(e.key === 'Escape' && document.getElementById('ordersOverlay').classList.contains('show')) closeMyOrders();
 });
