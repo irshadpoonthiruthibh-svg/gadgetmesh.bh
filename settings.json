@@ -15,6 +15,7 @@
     "heroImage2": "https://res.cloudinary.com/cxcbhpbm/image/upload/v1786001367/ChatGPT_Image_Aug_6_2026_10_27_21_AM_oeveqs.png",
     "heroImage3": "https://res.cloudinary.com/cxcbhpbm/image/upload/v1786526557/ChatGPT_Image_Aug_12_2026_12_22_16_PM_x9xtos.png",
     "heroProductId2": "P-1785436143361",
-    "heroProductId3": "P-1785600485091"
+    "heroProductId3": "P-1785600485091",
+    "referEarnActive": false
   }
 }
